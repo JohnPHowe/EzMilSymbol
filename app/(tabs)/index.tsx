@@ -55,7 +55,8 @@ const SIDC_SETS: SetDef[] = [
     label: 'Set A',
     groups: [
       { label: 'Version',               length: 2 },
-      { label: 'Standard Identity',     length: 2 },
+      { label: 'Context',               length: 1 },
+      { label: 'Standard Identity',     length: 1 },
       { label: 'Symbol Set',            length: 2 },
       { label: 'Status',                length: 1 },
       { label: 'HQTFFD',               length: 1 },
@@ -85,10 +86,10 @@ const SIDC_SETS: SetDef[] = [
 ];
 
 // Total character-width units across all three sets (digits + hyphens).
-// Set A: 10 digits + 5 hyphens = 15
+// Set A: 10 digits + 6 hyphens = 16
 // Set B: 10 digits + 4 hyphens = 14  (+ 1 inter-set hyphen)
 // Set C: 10 digits + 4 hyphens = 14  (+ 1 inter-set hyphen)
-const TOTAL_CHAR_UNITS = 45;
+const TOTAL_CHAR_UNITS = 46;
 const SIDC_PAD         = 16;
 const MONO             = Platform.OS === 'ios' ? 'Menlo' : 'monospace';
 const TOOLTIP_H        = 30;
@@ -276,10 +277,13 @@ function patchSIDC(sidc: string, pos: number, value: string) {
 
 export default function LookupScreen() {
   const [query, setQuery]         = useState('');
-  const [exercise, setExercise]   = useState('--');
-  const [context, setContext]     = useState<string | null>(null);
-  const [domain, setDomain]       = useState<Domain | null>(null);
-  const [symbolSet, setSymbolSet] = useState<string | null>(null);
+  const [exercise, setExercise]       = useState('--');
+  const [context, setContext]         = useState<string | null>(null);
+  const [domain, setDomain]           = useState<Domain | null>(null);
+  const [symbolSet, setSymbolSet]     = useState<string | null>(null);
+  const [affiliation, setAffiliation] = useState('3');
+  const [status, setStatus]           = useState('0');
+  const [hqtffd, setHqtffd]           = useState('0');
 
   function handleExerciseSelect(v: string) {
     setExercise(v);
@@ -288,9 +292,12 @@ export default function LookupScreen() {
 
   const sidc = useMemo(() => {
     let s = patchSIDC(DEFAULT_SIDC, 3, context ?? '0');
+    s = patchSIDC(s, 4, affiliation ?? '3');
     s = patchSIDC(s, 5, symbolSet ?? '00');
+    s = patchSIDC(s, 7, status ?? '0');
+    s = patchSIDC(s, 8, hqtffd);
     return s;
-  }, [context, symbolSet]);
+  }, [context, affiliation, symbolSet, status, hqtffd]);
 
   function handleDomainSelect(d: Domain) {
     setDomain(d);
@@ -320,7 +327,7 @@ export default function LookupScreen() {
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <Text style={styles.sectionHeading}>Guided Discovery</Text>
 
-        <Text style={styles.questionLabel}>Are you planning an exercise or simulation?</Text>
+        <Text style={styles.questionLabel}>Q1  Are you planning an exercise or simulation?</Text>
         <Dropdown
           placeholder="Select…"
           options={[
@@ -336,7 +343,7 @@ export default function LookupScreen() {
 
         {exercise !== '--' && (
           <>
-            <Text style={styles.questionLabel}>Is this a restricted target or no-strike entity?</Text>
+            <Text style={styles.questionLabel}>Q2  Is this a restricted target or no-strike entity?</Text>
             <Dropdown
               placeholder="Select a context…"
               options={CONTEXT_OPTIONS[exercise]}
@@ -347,7 +354,7 @@ export default function LookupScreen() {
           </>
         )}
 
-        <Text style={styles.questionLabel}>Choose a domain</Text>
+        <Text style={styles.questionLabel}>Q3  What domain are you in?</Text>
         <Dropdown
           placeholder="Select a domain…"
           options={DOMAINS.map(d => ({ value: d, label: d }))}
@@ -358,7 +365,7 @@ export default function LookupScreen() {
 
         {domain && (
           <>
-            <Text style={styles.questionLabel}>Sub-Domain</Text>
+            <Text style={styles.questionLabel}>Q4  Most domains have subsets. Which one do you want to use?</Text>
             <Dropdown
               placeholder="Select a sub-domain…"
               options={SYMBOL_SETS[domain]}
@@ -368,6 +375,57 @@ export default function LookupScreen() {
             />
           </>
         )}
+
+        <Text style={styles.questionLabel}>Q5  What is the affiliation?</Text>
+        <Dropdown
+          placeholder="Select an affiliation…"
+          options={[
+            { value: '0', label: 'Pending' },
+            { value: '1', label: 'Unknown' },
+            { value: '2', label: 'Assumed Friend' },
+            { value: '3', label: 'Friend' },
+            { value: '4', label: 'Neutral' },
+            { value: '5', label: 'Suspect/Joker' },
+            { value: '6', label: 'Hostile/Faker' },
+          ]}
+          value={affiliation}
+          onSelect={setAffiliation}
+          zIndex={5}
+        />
+
+        <Text style={styles.questionLabel}>Q6  What is your status?</Text>
+        <Dropdown
+          placeholder="Select a status…"
+          options={[
+            { value: '0', label: 'Present' },
+            { value: '1', label: 'Planned/Anticipated/Suspect' },
+            { value: '2', label: 'Present/Fully Capable' },
+            { value: '3', label: 'Present/Damaged' },
+            { value: '4', label: 'Present/Destroyed' },
+            { value: '5', label: 'Present/Full to Capacity' },
+          ]}
+          value={status}
+          onSelect={setStatus}
+          zIndex={4}
+        />
+
+        <Text style={styles.questionLabel}>Q7  Is this a headquarters, task force, feint, or dummy?</Text>
+        <Dropdown
+          placeholder="Select…"
+          options={[
+            { value: '0', label: 'Unknown' },
+            { value: '1', label: 'Feint/Decoy/Dummy' },
+            { value: '2', label: 'Headquarters' },
+            { value: '3', label: 'Feint/Dummy Headquarters' },
+            { value: '4', label: 'Task Force' },
+            { value: '5', label: 'Feint/Dummy Task Force' },
+            { value: '6', label: 'Task Force Headquarters' },
+            { value: '7', label: 'Feint/Dummy Task Force Headquarters' },
+          ]}
+          value={hqtffd}
+          onSelect={setHqtffd}
+          zIndex={3}
+        />
       </ScrollView>
     </SafeAreaView>
   );

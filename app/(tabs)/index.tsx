@@ -253,19 +253,19 @@ const DEFAULT_SIDC = '15000000000000000000000000000000';
 
 const CONTEXT_OPTIONS: Record<string, Option[]> = {
   real: [
-    { value: '0', label: 'Reality' },
-    { value: '3', label: 'Restricted Target - Reality' },
-    { value: '4', label: 'No-Strike Entity - Reality' },
+    { value: '0', label: 'No, just Reality' },
+    { value: '3', label: 'Yes, Restricted Target - Reality' },
+    { value: '4', label: 'Yes, No-Strike Entity - Reality' },
   ],
   exercise: [
-    { value: '1', label: 'Exercise' },
-    { value: '5', label: 'Restricted Target - Exercise' },
-    { value: '6', label: 'No-Strike Entity – Exercise' },
+    { value: '1', label: 'No, just Exercise' },
+    { value: '5', label: 'Yes, Restricted Target - Exercise' },
+    { value: '6', label: 'Yes, No-Strike Entity - Exercise' },
   ],
   simulation: [
-    { value: '2', label: 'Simulation' },
-    { value: '7', label: 'Restricted Target - Simulation' },
-    { value: '8', label: 'No-Strike Entity - Simulation' },
+    { value: '2', label: 'No, just Simulation' },
+    { value: '7', label: 'Yes, Restricted Target - Simulation' },
+    { value: '8', label: 'Yes, No-Strike Entity - Simulation' },
   ],
 };
 
@@ -283,7 +283,7 @@ export default function LookupScreen() {
 
   function handleExerciseSelect(v: string) {
     setExercise(v);
-    setContext(v !== '--' ? CONTEXT_OPTIONS[v][0].value : null);
+    setContext(null);
   }
 
   const sidc = useMemo(() => {

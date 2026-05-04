@@ -252,6 +252,54 @@ function Dropdown({
 
 const DEFAULT_SIDC = '15000000000000000000000000000000';
 
+const ECHELON_OPTIONS: Record<string, Option[]> = {
+  '7': [
+    { value: '1', label: 'Leader Individual' },
+  ],
+  '1': [
+    { value: '1', label: 'Team/Crew' },
+    { value: '2', label: 'Squad' },
+    { value: '3', label: 'Section' },
+    { value: '4', label: 'Platoon/Detachment' },
+    { value: '5', label: 'Company/Battery/Troop' },
+    { value: '6', label: 'Battalion/Squadron' },
+    { value: '7', label: 'Regiment/Group' },
+    { value: '8', label: 'Brigade' },
+  ],
+  '2': [
+    { value: '1', label: 'Division' },
+    { value: '2', label: 'Corps/MEF' },
+    { value: '3', label: 'Army' },
+    { value: '4', label: 'Army Group/Front' },
+    { value: '5', label: 'Region/Theater' },
+    { value: '6', label: 'Command' },
+  ],
+};
+
+const MOBILITY_SUB_OPTIONS: Record<string, Option[]> = {
+  '3': [
+    { value: '1', label: 'Wheeled limited cross country' },
+    { value: '2', label: 'Wheeled cross country' },
+    { value: '3', label: 'Tracked' },
+    { value: '4', label: 'Wheeled and tracked combination' },
+    { value: '5', label: 'Towed' },
+    { value: '6', label: 'Rail' },
+    { value: '7', label: 'Pack animals' },
+  ],
+  '4': [
+    { value: '1', label: 'Over-snow (prime mover)' },
+    { value: '2', label: 'Sled' },
+  ],
+  '5': [
+    { value: '1', label: 'Barge' },
+    { value: '2', label: 'Amphibious' },
+  ],
+  '6': [
+    { value: '1', label: 'Short towed array' },
+    { value: '2', label: 'Long towed array' },
+  ],
+};
+
 const CONTEXT_OPTIONS: Record<string, Option[]> = {
   real: [
     { value: '0', label: 'No, just Reality' },
@@ -284,6 +332,39 @@ export default function LookupScreen() {
   const [affiliation, setAffiliation] = useState('3');
   const [status, setStatus]           = useState('0');
   const [hqtffd, setHqtffd]           = useState('0');
+  const [levelMode, setLevelMode]       = useState('0');
+  const [echelonGroup, setEchelonGroup] = useState('0');
+  const [echelon, setEchelon]           = useState<string | null>(null);
+  const [mobility, setMobility]         = useState<string | null>(null);
+  const [mobilityEchelon, setMobilityEchelon] = useState('1');
+
+  function resetAll() {
+    setExercise('--');
+    setContext(null);
+    setDomain(null);
+    setSymbolSet(null);
+    setAffiliation('3');
+    setStatus('0');
+    setHqtffd('0');
+    setLevelMode('0');
+    setEchelonGroup('0');
+    setEchelon(null);
+    setMobility(null);
+    setMobilityEchelon('1');
+  }
+
+  function handleLevelModeSelect(v: string) {
+    setLevelMode(v);
+    setEchelonGroup('0');
+    setEchelon(null);
+    setMobility(null);
+    setMobilityEchelon('1');
+  }
+
+  function handleMobilitySelect(v: string) {
+    setMobility(v);
+    setMobilityEchelon('1');
+  }
 
   function handleExerciseSelect(v: string) {
     setExercise(v);
@@ -296,8 +377,13 @@ export default function LookupScreen() {
     s = patchSIDC(s, 5, symbolSet ?? '00');
     s = patchSIDC(s, 7, status ?? '0');
     s = patchSIDC(s, 8, hqtffd);
+    const digit9 = levelMode === '1' ? echelonGroup
+                 : levelMode === '2' ? (mobility ?? '0')
+                 : '0';
+    s = patchSIDC(s, 9, digit9);
+    s = patchSIDC(s, 10, levelMode === '2' ? mobilityEchelon : (echelon ?? '0'));
     return s;
-  }, [context, affiliation, symbolSet, status, hqtffd]);
+  }, [context, affiliation, symbolSet, status, hqtffd, levelMode, echelonGroup, echelon, mobility, mobilityEchelon]);
 
   function handleDomainSelect(d: Domain) {
     setDomain(d);
@@ -325,7 +411,12 @@ export default function LookupScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        <Text style={styles.sectionHeading}>Guided Discovery</Text>
+        <View style={styles.sectionHeadingRow}>
+          <Text style={styles.sectionHeading}>Guided Discovery</Text>
+          <TouchableOpacity onPress={resetAll} style={styles.resetButton} activeOpacity={0.6}>
+            <Text style={styles.resetIcon}>↺</Text>
+          </TouchableOpacity>
+        </View>
 
         <Text style={styles.questionLabel}>Q1  Are you planning an exercise or simulation?</Text>
         <Dropdown
@@ -426,6 +517,81 @@ export default function LookupScreen() {
           onSelect={setHqtffd}
           zIndex={3}
         />
+
+        <Text style={styles.questionLabel}>Q8  Do you need to set a leadership level or define mobility status?</Text>
+        <Dropdown
+          placeholder="Select…"
+          options={[
+            { value: '0', label: 'No' },
+            { value: '1', label: "Yes, I'm stationary and need to set a leadership level" },
+            { value: '2', label: "Yes, I'm mobile equipment" },
+          ]}
+          value={levelMode}
+          onSelect={handleLevelModeSelect}
+          zIndex={3}
+        />
+
+        {levelMode === '1' && (
+          <>
+            <Text style={styles.questionLabel}>Q9  What is your leadership level?</Text>
+            <Dropdown
+              placeholder="Select…"
+              options={[
+                { value: '0', label: 'Unknown' },
+                { value: '1', label: 'Brigade and below' },
+                { value: '2', label: 'Division and above' },
+                { value: '7', label: 'Individual Leader' },
+              ]}
+              value={echelonGroup}
+              onSelect={v => { setEchelonGroup(v); setEchelon(null); }}
+              zIndex={2}
+            />
+
+            {echelonGroup !== '0' && (
+              <>
+                <Text style={styles.questionLabel}>Q10  Echelon Options</Text>
+                <Dropdown
+                  placeholder="Select an echelon…"
+                  options={ECHELON_OPTIONS[echelonGroup] ?? []}
+                  value={echelon}
+                  onSelect={setEchelon}
+                  zIndex={1}
+                />
+              </>
+            )}
+          </>
+        )}
+
+        {levelMode === '2' && (
+          <>
+            <Text style={styles.questionLabel}>Q11  What kind of mobile equipment?</Text>
+            <Dropdown
+              placeholder="Select…"
+              options={[
+                { value: '3', label: 'Mobile equipment on land' },
+                { value: '4', label: 'Mobile equipment on snow' },
+                { value: '5', label: 'Mobile equipment on water' },
+                { value: '6', label: 'Naval towed array' },
+              ]}
+              value={mobility}
+              onSelect={handleMobilitySelect}
+              zIndex={2}
+            />
+
+            {mobility !== null && (
+              <>
+                <Text style={styles.questionLabel}>Q12  Which type?</Text>
+                <Dropdown
+                  placeholder="Select…"
+                  options={MOBILITY_SUB_OPTIONS[mobility] ?? []}
+                  value={mobilityEchelon}
+                  onSelect={setMobilityEchelon}
+                  zIndex={1}
+                />
+              </>
+            )}
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -452,12 +618,18 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   body: { paddingHorizontal: 16, paddingBottom: 40 },
+  sectionHeadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   sectionHeading: {
     fontSize: 18,
     fontWeight: '700',
     color: '#11181C',
-    marginBottom: 20,
   },
+  resetButton: { padding: 4, marginLeft: 20 },
+  resetIcon: { fontSize: 22, color: '#0a7ea4', lineHeight: 26 },
   questionLabel: {
     fontSize: 14,
     fontWeight: '600',

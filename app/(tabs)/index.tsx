@@ -1,4 +1,7 @@
 import { useState, useMemo } from 'react';
+import { ENTITY_OPTIONS } from '@/assets/data/entityOptions';
+import ms from 'milsymbol';
+import { SvgXml } from 'react-native-svg';
 import {
   View,
   Text,
@@ -110,6 +113,33 @@ function buildItems(sidc: string): RowItem[] {
     });
   });
   return items;
+}
+
+// ── SymbolPreview ─────────────────────────────────────────────────────────────
+
+function SymbolPreview({ sidc }: { sidc: string }) {
+  const { svg, naturalW, naturalH } = useMemo(() => {
+    try {
+      const symbol = new ms.Symbol(sidc, { size: 100 });
+      const { width: naturalW, height: naturalH } = symbol.getSize();
+      return { svg: symbol.asSVG(), naturalW, naturalH };
+    } catch {
+      return { svg: null, naturalW: 0, naturalH: 0 };
+    }
+  }, [sidc]);
+
+  const MAX_W = 280, MAX_H = 200;
+  const scale = naturalW && naturalH ? Math.min(MAX_W / naturalW, MAX_H / naturalH) : 1;
+  const displayW = Math.round(naturalW * scale);
+  const displayH = Math.round(naturalH * scale);
+
+  return (
+    <View style={{ paddingHorizontal: 16, paddingBottom: 8 }}>
+      <View style={{ width: MAX_W, height: MAX_H, justifyContent: 'center', alignItems: 'center' }}>
+        {svg && <SvgXml xml={svg} width={displayW} height={displayH} />}
+      </View>
+    </View>
+  );
 }
 
 // ── SIDCDisplay ───────────────────────────────────────────────────────────────
@@ -336,13 +366,19 @@ export default function LookupScreen() {
   const [echelonGroup, setEchelonGroup] = useState('0');
   const [echelon, setEchelon]           = useState<string | null>(null);
   const [mobility, setMobility]         = useState<string | null>(null);
-  const [mobilityEchelon, setMobilityEchelon] = useState('1');
+  const [mobilityEchelon, setMobilityEchelon] = useState('0');
+  const [entity,        setEntity]        = useState<string | null>(null);
+  const [entityType,    setEntityType]    = useState<string | null>(null);
+  const [entitySubtype, setEntitySubtype] = useState<string | null>(null);
 
   function resetAll() {
     setExercise('--');
     setContext(null);
     setDomain(null);
     setSymbolSet(null);
+    setEntity(null);
+    setEntityType(null);
+    setEntitySubtype(null);
     setAffiliation('3');
     setStatus('0');
     setHqtffd('0');
@@ -350,7 +386,14 @@ export default function LookupScreen() {
     setEchelonGroup('0');
     setEchelon(null);
     setMobility(null);
-    setMobilityEchelon('1');
+    setMobilityEchelon('0');
+  }
+
+  function handleEntitySelect(v: string) {
+    setEntity(v); setEntityType(null); setEntitySubtype(null);
+  }
+  function handleEntityTypeSelect(v: string) {
+    setEntityType(v); setEntitySubtype(null);
   }
 
   function handleLevelModeSelect(v: string) {
@@ -358,12 +401,12 @@ export default function LookupScreen() {
     setEchelonGroup('0');
     setEchelon(null);
     setMobility(null);
-    setMobilityEchelon('1');
+    setMobilityEchelon('0');
   }
 
   function handleMobilitySelect(v: string) {
     setMobility(v);
-    setMobilityEchelon('1');
+    setMobilityEchelon('0');
   }
 
   function handleExerciseSelect(v: string) {
@@ -382,17 +425,29 @@ export default function LookupScreen() {
                  : '0';
     s = patchSIDC(s, 9, digit9);
     s = patchSIDC(s, 10, levelMode === '2' ? mobilityEchelon : (echelon ?? '0'));
+    s = patchSIDC(s, 11, entity       ?? '00');
+    s = patchSIDC(s, 13, entityType   ?? '00');
+    s = patchSIDC(s, 15, entitySubtype ?? '00');
     return s;
-  }, [context, affiliation, symbolSet, status, hqtffd, levelMode, echelonGroup, echelon, mobility, mobilityEchelon]);
+  }, [context, affiliation, symbolSet, status, hqtffd, levelMode, echelonGroup, echelon, mobility, mobilityEchelon, entity, entityType, entitySubtype]);
 
   function handleDomainSelect(d: Domain) {
     setDomain(d);
     setSymbolSet(SYMBOL_SETS[d][0].value);
+    setEntity(null);
+    setEntityType(null);
+    setEntitySubtype(null);
   }
+
+  const entityData    = symbolSet !== null ? (ENTITY_OPTIONS[symbolSet] ?? null) : null;
+  const entityDef     = entity !== null && entityData !== null ? (entityData.find(e => e.value === entity) ?? null) : null;
+  const entityTypeDef = entityType !== null && entityDef !== null ? (entityDef.types.find(t => t.value === entityType) ?? null) : null;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Text style={styles.heading}>Symbol Lookup</Text>
+
+      <SymbolPreview sidc={sidc} />
 
       <SIDCDisplay sidc={sidc} />
 
@@ -418,34 +473,7 @@ export default function LookupScreen() {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.questionLabel}>Q1  Are you planning an exercise or simulation?</Text>
-        <Dropdown
-          placeholder="Select…"
-          options={[
-            { value: '--',         label: '--' },
-            { value: 'real',       label: 'Nope, real life' },
-            { value: 'exercise',   label: 'Yes, exercise' },
-            { value: 'simulation', label: 'Yes, simulation' },
-          ]}
-          value={exercise}
-          onSelect={handleExerciseSelect}
-          zIndex={30}
-        />
-
-        {exercise !== '--' && (
-          <>
-            <Text style={styles.questionLabel}>Q2  Is this a restricted target or no-strike entity?</Text>
-            <Dropdown
-              placeholder="Select a context…"
-              options={CONTEXT_OPTIONS[exercise]}
-              value={context}
-              onSelect={setContext}
-              zIndex={25}
-            />
-          </>
-        )}
-
-        <Text style={styles.questionLabel}>Q3  What domain are you in?</Text>
+        <Text style={styles.questionLabel}>Q1  What domain are you in?</Text>
         <Dropdown
           placeholder="Select a domain…"
           options={DOMAINS.map(d => ({ value: d, label: d }))}
@@ -456,7 +484,7 @@ export default function LookupScreen() {
 
         {domain && (
           <>
-            <Text style={styles.questionLabel}>Q4  Most domains have subsets. Which one do you want to use?</Text>
+            <Text style={styles.questionLabel}>Q2  Most domains have subsets. Which one do you want to use?</Text>
             <Dropdown
               placeholder="Select a sub-domain…"
               options={SYMBOL_SETS[domain]}
@@ -467,7 +495,52 @@ export default function LookupScreen() {
           </>
         )}
 
-        <Text style={styles.questionLabel}>Q5  What is the affiliation?</Text>
+        {symbolSet !== null && (
+          <>
+            <Text style={styles.questionLabel}>Q3  What is the entity?</Text>
+            {entityData ? (
+              <Dropdown
+                placeholder="Select an entity…"
+                options={entityData.map(e => ({ value: e.value, label: e.label }))}
+                value={entity}
+                onSelect={handleEntitySelect}
+                zIndex={18}
+              />
+            ) : (
+              <View style={styles.placeholderDropdown}>
+                <Text style={styles.placeholderText}>Entity data not yet available for this symbol set</Text>
+              </View>
+            )}
+
+            {entityDef && entityDef.types.length > 0 && (
+              <>
+                <Text style={styles.questionLabel}>Q4  What type of {entityDef.label}?</Text>
+                <Dropdown
+                  placeholder="Select a type…"
+                  options={entityDef.types.map(t => ({ value: t.value, label: t.label }))}
+                  value={entityType}
+                  onSelect={handleEntityTypeSelect}
+                  zIndex={17}
+                />
+
+                {entityTypeDef && entityTypeDef.subtypes.length > 0 && (
+                  <>
+                    <Text style={styles.questionLabel}>Q5  What subtype?</Text>
+                    <Dropdown
+                      placeholder="Select a subtype…"
+                      options={entityTypeDef.subtypes}
+                      value={entitySubtype}
+                      onSelect={setEntitySubtype}
+                      zIndex={16}
+                    />
+                  </>
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        <Text style={styles.questionLabel}>Q6  What is the affiliation?</Text>
         <Dropdown
           placeholder="Select an affiliation…"
           options={[
@@ -484,7 +557,7 @@ export default function LookupScreen() {
           zIndex={5}
         />
 
-        <Text style={styles.questionLabel}>Q6  What is your status?</Text>
+        <Text style={styles.questionLabel}>Q7  What is your status?</Text>
         <Dropdown
           placeholder="Select a status…"
           options={[
@@ -500,7 +573,7 @@ export default function LookupScreen() {
           zIndex={4}
         />
 
-        <Text style={styles.questionLabel}>Q7  Is this a headquarters, task force, feint, or dummy?</Text>
+        <Text style={styles.questionLabel}>Q8  Is this a headquarters, task force, feint, or dummy?</Text>
         <Dropdown
           placeholder="Select…"
           options={[
@@ -518,7 +591,7 @@ export default function LookupScreen() {
           zIndex={3}
         />
 
-        <Text style={styles.questionLabel}>Q8  Do you need to set a leadership level or define mobility status?</Text>
+        <Text style={styles.questionLabel}>Q9  Do you need to set a leadership level or define mobility status?</Text>
         <Dropdown
           placeholder="Select…"
           options={[
@@ -533,7 +606,7 @@ export default function LookupScreen() {
 
         {levelMode === '1' && (
           <>
-            <Text style={styles.questionLabel}>Q9  What is your leadership level?</Text>
+            <Text style={styles.questionLabel}>Q10  What is your leadership level?</Text>
             <Dropdown
               placeholder="Select…"
               options={[
@@ -549,7 +622,7 @@ export default function LookupScreen() {
 
             {echelonGroup !== '0' && (
               <>
-                <Text style={styles.questionLabel}>Q10  Echelon Options</Text>
+                <Text style={styles.questionLabel}>Q11  Echelon Options</Text>
                 <Dropdown
                   placeholder="Select an echelon…"
                   options={ECHELON_OPTIONS[echelonGroup] ?? []}
@@ -564,7 +637,7 @@ export default function LookupScreen() {
 
         {levelMode === '2' && (
           <>
-            <Text style={styles.questionLabel}>Q11  What kind of mobile equipment?</Text>
+            <Text style={styles.questionLabel}>Q12  What kind of mobile equipment?</Text>
             <Dropdown
               placeholder="Select…"
               options={[
@@ -580,7 +653,7 @@ export default function LookupScreen() {
 
             {mobility !== null && (
               <>
-                <Text style={styles.questionLabel}>Q12  Which type?</Text>
+                <Text style={styles.questionLabel}>Q13  Which type?</Text>
                 <Dropdown
                   placeholder="Select…"
                   options={MOBILITY_SUB_OPTIONS[mobility] ?? []}
@@ -590,6 +663,33 @@ export default function LookupScreen() {
                 />
               </>
             )}
+          </>
+        )}
+
+        <Text style={styles.questionLabel}>Q14  Are you planning an exercise or simulation?</Text>
+        <Dropdown
+          placeholder="Select…"
+          options={[
+            { value: '--',         label: '--' },
+            { value: 'real',       label: 'Nope, real life' },
+            { value: 'exercise',   label: 'Yes, exercise' },
+            { value: 'simulation', label: 'Yes, simulation' },
+          ]}
+          value={exercise}
+          onSelect={handleExerciseSelect}
+          zIndex={4}
+        />
+
+        {exercise !== '--' && (
+          <>
+            <Text style={styles.questionLabel}>Q15  Is this a restricted target or no-strike entity?</Text>
+            <Dropdown
+              placeholder="Select a context…"
+              options={CONTEXT_OPTIONS[exercise]}
+              value={context}
+              onSelect={setContext}
+              zIndex={3}
+            />
           </>
         )}
       </ScrollView>
@@ -671,6 +771,12 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  placeholderDropdown: {
+    borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8,
+    paddingHorizontal: 14, paddingVertical: 12,
+    backgroundColor: '#F9FAFB', marginBottom: 16,
+  },
+  placeholderText: { fontSize: 15, color: '#9CA3AF', fontStyle: 'italic' },
   dropdownItem:             { paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB' },
   dropdownItemSelected:     { backgroundColor: '#EFF6FF' },
   dropdownItemText:         { fontSize: 15, color: '#11181C' },

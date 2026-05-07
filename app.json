@@ -23,6 +23,7 @@
     },
     "web": {
       "output": "static",
+	  "baseUrl": "/milsymbol-poc"
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [

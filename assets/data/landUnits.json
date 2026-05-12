@@ -1,0 +1,772 @@
+[
+  {
+    "id": "cyberspace-operations",
+    "name": "Cyberspace Operations",
+    "symbolCode": "CYB",
+    "category": "Command and Control",
+    "definition": "The employment of cyberspace capabilities where the primary purpose is to achieve objectives in or through cyberspace. (JP 3-0)",
+    "sidc": "10031000141306000000000000000000",
+    "exampleUnit": "Cyberspace brigade",
+    "tags": ["cyber", "C2", "command and control"]
+  },
+  {
+    "id": "electromagnetic-warfare",
+    "name": "Electromagnetic Warfare",
+    "symbolCode": "EW",
+    "category": "Command and Control",
+    "definition": "Military action involving the use of electromagnetic and directed energy to control the electromagnetic spectrum or to attack the enemy. (JP 3-85)",
+    "sidc": "10031000141304000000000000000000",
+    "exampleUnit": "Electromagnetic warfare company",
+    "tags": ["EW", "electronic warfare", "spectrum", "C2"]
+  },
+  {
+    "id": "information-operations",
+    "name": "Information Operations Force",
+    "symbolCode": "IO",
+    "category": "Command and Control",
+    "definition": "A force consisting of units, staff elements, and individual military professionals who conduct or directly support the integration of information-related capabilities against adversaries. (DODD 3600.01)",
+    "sidc": "10031000141305000000000000000000",
+    "exampleUnit": "Information operations team",
+    "tags": ["IO", "information operations", "C2"]
+  },
+  {
+    "id": "interpreter-translator",
+    "name": "Interpreter or Translator",
+    "symbolCode": null,
+    "category": "Command and Control",
+    "definition": "The capability to translate orally for parties conversing in different languages and turn documents into one's own or other language.",
+    "sidc": "10031000141309000000000000000000",
+    "exampleUnit": "Interpreter or translator team",
+    "tags": ["interpreter", "translator", "language"]
+  },
+  {
+    "id": "isolated-personnel",
+    "name": "Isolated Personnel",
+    "symbolCode": null,
+    "category": "Command and Control",
+    "definition": "US military, DoD civilians, and contractor personnel who are separated from their unit while participating in a US sponsored military activity and must survive, evade, resist, or escape. (JP 3-50)",
+    "sidc": "10031000141310000000000000000000",
+    "exampleUnit": "Isolated squad",
+    "tags": ["SERE", "isolated", "personnel recovery"]
+  },
+  {
+    "id": "liaison",
+    "name": "Liaison",
+    "symbolCode": "LO",
+    "category": "Command and Control",
+    "definition": "That contact or intercommunication maintained between elements of military forces or other agencies to ensure mutual understanding and unity of purpose and action. (FM 6-0)",
+    "sidc": "10031000141311000000000000000000",
+    "exampleUnit": "Liaison team",
+    "tags": ["LO", "liaison", "C2"]
+  },
+  {
+    "id": "multinational-operations",
+    "name": "Multinational Operations",
+    "symbolCode": "MN",
+    "category": "Command and Control",
+    "definition": "A collective term to describe military actions conducted by forces of two or more nations, usually undertaken within the structure of a coalition or alliance. (JP 3-16)",
+    "sidc": "10031000141312000000000000000000",
+    "exampleUnit": "Multinational corps",
+    "tags": ["MN", "multinational", "coalition", "alliance", "NATO"]
+  },
+  {
+    "id": "public-affairs",
+    "name": "Public Affairs",
+    "symbolCode": "PA",
+    "category": "Command and Control",
+    "definition": "Communication activities with external and internal audiences. (JP 3-61)",
+    "sidc": "10031000141313000000000000000000",
+    "exampleUnit": "Public affairs section",
+    "tags": ["PA", "public affairs", "media"]
+  },
+  {
+    "id": "signal",
+    "name": "Signal",
+    "symbolCode": null,
+    "category": "Command and Control",
+    "definition": "Provides and secures the network for commanders to conduct command and control and integrate the other warfighting functions across the range of military operations. (See FM 6-02)",
+    "sidc": "10031000111000000000000000000000",
+    "exampleUnit": "Signal company",
+    "tags": ["signal", "communications", "network", "C2"]
+  },
+  {
+    "id": "space-forces",
+    "name": "Space Forces",
+    "symbolCode": null,
+    "category": "Command and Control",
+    "definition": "The space and terrestrial systems, equipment, facilities, organizations, and personnel necessary to conduct space operations. (JP 3-14)",
+    "sidc": "10031000141314000000000000000000",
+    "exampleUnit": "Space battalion",
+    "tags": ["space", "space forces"]
+  },
+  {
+    "id": "special-troops",
+    "name": "Special Troops",
+    "symbolCode": "ST",
+    "category": "Command and Control",
+    "definition": "An organic unit of a modular brigade, division, corps or higher echelon responsible for planning, preparing, executing, and assessing internal support requirements. (See FM 4-0 and FM 3-96)",
+    "sidc": "10031000141315000000000000000000",
+    "exampleUnit": "Special troops battalion",
+    "tags": ["ST", "special troops", "HHC"]
+  },
+  {
+    "id": "air-defense-artillery",
+    "name": "Air Defense Artillery",
+    "symbolCode": null,
+    "category": "Fires",
+    "definition": "Weapons and equipment for actively combating air targets from the ground. (JP 3-01)",
+    "sidc": "10031000161100000000000000000000",
+    "exampleUnit": "Air defense battery",
+    "tags": ["ADA", "air defense", "artillery", "fires"]
+  },
+  {
+    "id": "air-missile-defense",
+    "name": "Air and Missile Defense",
+    "symbolCode": "MD",
+    "category": "Fires",
+    "definition": "Direct actions taken to destroy, nullify, or reduce the effectiveness of hostile air and ballistic missile threats against friendly forces and assets. (JP 3-01)",
+    "sidc": "10031000161101000000000000000000",
+    "exampleUnit": "Air and missile defense battalion",
+    "tags": ["AMD", "air missile defense", "ballistic missile", "fires"]
+  },
+  {
+    "id": "anglico",
+    "name": "Air-Naval Gunfire Liaison (ANGLICO)",
+    "symbolCode": null,
+    "category": "Fires",
+    "definition": "Provides the MAGTF commander a liaison capability to plan, coordinate, and conduct terminal control of fires in support of joint and multinational forces. (See JP 3-09)",
+    "sidc": "10031000161102000000000000000000",
+    "exampleUnit": "ANGLICO team",
+    "tags": ["ANGLICO", "naval gunfire", "fires", "Marine", "joint fires"]
+  },
+  {
+    "id": "directed-energy",
+    "name": "Directed Energy",
+    "symbolCode": null,
+    "category": "Fires",
+    "definition": "An umbrella term covering technologies that relate to the production of a beam of concentrated electromagnetic energy or atomic or subatomic particles. (JP 3-85)",
+    "sidc": "10031000161103000000000000000000",
+    "exampleUnit": "Directed energy air defense battalion",
+    "tags": ["directed energy", "laser", "fires", "DEW"]
+  },
+  {
+    "id": "field-artillery",
+    "name": "Field Artillery",
+    "symbolCode": null,
+    "category": "Fires",
+    "definition": "The equipment, supplies, ammunition, and personnel involved in the use of indirect fire cannon, rocket, or surface-to-surface missile launchers. (FM 3-09)",
+    "sidc": "10031000161200000000000000000000",
+    "exampleUnit": "Field artillery battery",
+    "tags": ["field artillery", "FA", "cannon", "rocket", "MLRS", "fires", "indirect fire"]
+  },
+  {
+    "id": "missile",
+    "name": "Missile",
+    "symbolCode": null,
+    "category": "Fires",
+    "definition": "A weapon that is self-propelled or directed by remote control, carrying conventional or nuclear explosive.",
+    "sidc": "10031000161201000000000000000000",
+    "exampleUnit": "Missile battery",
+    "tags": ["missile", "rocket", "fires"]
+  },
+  {
+    "id": "missile-defense",
+    "name": "Missile Defense",
+    "symbolCode": "MD",
+    "category": "Fires",
+    "definition": "Defensive measures designed to destroy attacking enemy missiles or to nullify or reduce the effectiveness of such attack. (JP 3-01)",
+    "sidc": "10031000161202000000000000000000",
+    "exampleUnit": "Missile defense battalion",
+    "tags": ["missile defense", "BMD", "fires"]
+  },
+  {
+    "id": "short-range-air-defense",
+    "name": "Short-Range Air Defense",
+    "symbolCode": null,
+    "category": "Fires",
+    "definition": "An ADA capability which integrates existing guns, missiles, rockets, and sensors to defend against low-altitude air threats. (See JP 3-01)",
+    "sidc": "10031000161104000000000000000000",
+    "exampleUnit": "Short-range air defense battalion",
+    "tags": ["SHORAD", "short range air defense", "Stinger", "maneuver SHORAD", "fires"]
+  },
+  {
+    "id": "intelligence-operations",
+    "name": "Intelligence Operations",
+    "symbolCode": "MI",
+    "category": "Intelligence",
+    "definition": "The tasks undertaken by military intelligence units through the intelligence disciplines to obtain information to satisfy validated requirements. (ADP 2-0)",
+    "sidc": "10031000121100000000000000000000",
+    "exampleUnit": "Military intelligence company",
+    "tags": ["MI", "military intelligence", "ISR", "intelligence"]
+  },
+  {
+    "id": "anti-armor",
+    "name": "Anti-Armor (Anti-Tank)",
+    "symbolCode": null,
+    "category": "Movement and Maneuver",
+    "definition": "Provides long range direct fires with anti-tank guided missiles (ATGMs), tube-launched, optically tracked, wire-guided (TOW) anti-tank guns, or self-propelled anti-tank guns or ATGM launchers. (See ATP 3-21.91)",
+    "sidc": "10031000121200000000000000000000",
+    "exampleUnit": "Anti-armor platoon",
+    "tags": ["anti-armor", "anti-tank", "ATGM", "TOW", "maneuver"]
+  },
+  {
+    "id": "armor-tracked",
+    "name": "Armor (Tracked)",
+    "symbolCode": null,
+    "category": "Movement and Maneuver",
+    "definition": "Provides main battle tank weapon system with 120mm smoothbore cannon and increased armor protection. (See ATP 3-90.1 and ATP 3-20.15)",
+    "sidc": "10031000151100000000000000000000",
+    "exampleUnit": "Armor battalion",
+    "tags": ["armor", "tank", "Abrams", "M1", "maneuver"]
+  },
+  {
+    "id": "armored-cavalry",
+    "name": "Armored (Tracked) Cavalry",
+    "symbolCode": null,
+    "category": "Movement and Maneuver",
+    "definition": "Conducts reconnaissance and security with armored tracked fighting vehicles to support the brigade's awareness and knowledge in the area of operations. (See ATP 3-20.96)",
+    "sidc": "10031000151300000000000000000000",
+    "exampleUnit": "Armored cavalry troop",
+    "tags": ["armored cavalry", "RSTA", "recon", "security", "maneuver"]
+  },
+  {
+    "id": "army-aviation-rotary",
+    "name": "Army Aviation / Rotary-Wing Aviation",
+    "symbolCode": null,
+    "category": "Movement and Maneuver",
+    "definition": "Conducts attack and air movement functions in support of ground maneuver in the area of operations or area of interest. (See FM 3-04)",
+    "sidc": "10031000120100000000000000000000",
+    "exampleUnit": "Aviation (rotary-wing) squadron",
+    "tags": ["aviation", "rotary wing", "helicopter", "Apache", "Black Hawk", "maneuver"]
+  },
+  {
+    "id": "aviation-rotary-recon",
+    "name": "Aviation (Rotary-Wing) Reconnaissance",
+    "symbolCode": null,
+    "category": "Movement and Maneuver",
+    "definition": "Conducts aerial reconnaissance and security tasks in close coordination with the brigade's cavalry squadrons. (See FM 3-04 and FM 3-98)",
+    "sidc": "10031000120101000000000000000000",
+    "exampleUnit": "Attack reconnaissance squadron",
+    "tags": ["aviation", "recon", "reconnaissance", "aerial", "maneuver"]
+  },
+  {
+    "id": "aviation-fixed-wing",
+    "name": "Aviation (Fixed Wing)",
+    "symbolCode": null,
+    "category": "Movement and Maneuver",
+    "definition": "Conducts air movement of personnel, leaders, critical supplies, equipment, and systems during the conduct of operations. (See FM 3-04)",
+    "sidc": "10031000120200000000000000000000",
+    "exampleUnit": "Aviation (fixed wing) battalion",
+    "tags": ["aviation", "fixed wing", "aircraft", "maneuver"]
+  },
+  {
+    "id": "cavalry-recon",
+    "name": "Cavalry (Reconnaissance)",
+    "symbolCode": null,
+    "category": "Movement and Maneuver",
+    "definition": "Conducts reconnaissance and security to support friendly forces awareness and knowledge in the area of operations. (See FM 3-98 and ATP 3-20.96)",
+    "sidc": "10031000151200000000000000000000",
+    "exampleUnit": "Cavalry platoon",
+    "tags": ["cavalry", "recon", "reconnaissance", "security", "RSTA", "maneuver"]
+  },
+  {
+    "id": "combined-arms",
+    "name": "Combined Arms",
+    "symbolCode": null,
+    "category": "Movement and Maneuver",
+    "definition": "Combines the efforts of armor units and mechanized infantry units to execute tactical missions as part of a combined arms operation. (See ATP 3-90.5 and ATP 3-90.1)",
+    "sidc": "10031000151400000000000000000000",
+    "exampleUnit": "Combined arms battalion",
+    "tags": ["combined arms", "CAB", "armor", "mechanized infantry", "maneuver"]
+  },
+  {
+    "id": "infantry",
+    "name": "Infantry",
+    "symbolCode": null,
+    "category": "Movement and Maneuver",
+    "definition": "Provides Soldiers trained, armed, and equipped to fight dismounted by means of fire and movement to destroy, defeat, capture, or repel an enemy assault. (See ATP 3-21.20)",
+    "sidc": "10031000141211000000000000000000",
+    "exampleUnit": "Infantry battalion",
+    "tags": ["infantry", "dismounted", "rifle", "maneuver"]
+  },
+  {
+    "id": "mechanized-infantry",
+    "name": "Mechanized Armored (Tracked) Infantry",
+    "symbolCode": null,
+    "category": "Movement and Maneuver",
+    "definition": "Provides armored tracked fighting vehicles to transport and support Soldiers trained, armed, and equipped to fight dismounted by means of fire and movement. (See ATP 3-90.5 and ATP 3-90.1)",
+    "sidc": "10031000151500000000000000000000",
+    "exampleUnit": "Mechanized armored infantry company",
+    "tags": ["mechanized", "mech infantry", "Bradley", "IFV", "maneuver"]
+  },
+  {
+    "id": "mortar",
+    "name": "Mortar",
+    "symbolCode": null,
+    "category": "Movement and Maneuver",
+    "definition": "Organic fire support to battalions, squadrons, companies, and troops, available to a commander when other indirect fire support is not available. (See ATP 3-21.90)",
+    "sidc": "10031000161203000000000000000000",
+    "exampleUnit": "Mortar section",
+    "tags": ["mortar", "indirect fire", "M252", "maneuver"]
+  },
+  {
+    "id": "surveillance",
+    "name": "Surveillance",
+    "symbolCode": null,
+    "category": "Movement and Maneuver",
+    "definition": "The systematic observation of aerospace, cyberspace, surface, or subsurface areas, places, persons, or things by visual, aural, electronic, photographic, or other means. (JP 3-0)",
+    "sidc": "10031000121400000000000000000000",
+    "exampleUnit": "Surveillance team",
+    "tags": ["surveillance", "ISR", "observation", "maneuver"]
+  },
+  {
+    "id": "atf",
+    "name": "Bureau of Alcohol, Tobacco, Firearms, and Explosives (ATF)",
+    "symbolCode": "ATF",
+    "category": "Protection",
+    "definition": "Civil authority law enforcement agency in the US Department of Justice that protects communities from violent criminals, criminal organizations, the illegal use and trafficking of firearms and explosives. (See ATF.gov)",
+    "sidc": "10031000171600000000000000000000",
+    "exampleUnit": "ATF team",
+    "tags": ["ATF", "law enforcement", "civil authority", "protection"]
+  },
+  {
+    "id": "cbrn",
+    "name": "Chemical, Biological, Radiological, and Nuclear (CBRN)",
+    "symbolCode": null,
+    "category": "Protection",
+    "definition": "Recognizes vulnerabilities, identifies, and understands CBRN hazards and their consequences when they appear, and responds appropriately to protect the force. (See ADP 3-37)",
+    "sidc": "10031000171100000000000000000000",
+    "exampleUnit": "CBRN company",
+    "tags": ["CBRN", "chemical", "biological", "radiological", "nuclear", "protection", "hazmat"]
+  },
+  {
+    "id": "cbrn-explosive",
+    "name": "CBRN, Explosive",
+    "symbolCode": null,
+    "category": "Protection",
+    "definition": "Recognizes components that are threats or potential hazards with adverse effects in the operational environment. (See ATP 3-37.11)",
+    "sidc": "10031000171101000000000000000000",
+    "exampleUnit": "CBRN explosive team",
+    "tags": ["CBRN", "explosive", "IED", "protection"]
+  },
+  {
+    "id": "cbrn-recon",
+    "name": "CBRN Reconnaissance",
+    "symbolCode": null,
+    "category": "Protection",
+    "definition": "Executes operations to obtain by visual observation or other detection methods information on the potential or actual CBRN hazards and threats in an area of operations. (See ATP 3-37.11)",
+    "sidc": "10031000171102000000000000000000",
+    "exampleUnit": "CBRN reconnaissance platoon",
+    "tags": ["CBRN", "recon", "nuclear recon", "protection"]
+  },
+  {
+    "id": "dea",
+    "name": "Drug Enforcement Administration (DEA)",
+    "symbolCode": "DEA",
+    "category": "Protection",
+    "definition": "The civil authority law enforcement agency under the US Department of Justice tasked with combating drug trafficking and distribution. (See DEA.gov)",
+    "sidc": "10031000171601000000000000000000",
+    "exampleUnit": "DEA team",
+    "tags": ["DEA", "law enforcement", "civil authority", "protection"]
+  },
+  {
+    "id": "engineer",
+    "name": "Engineer",
+    "symbolCode": null,
+    "category": "Protection",
+    "definition": "Provides Soldiers with technical skills and equipment to provide freedom of action or land power by mitigating the effects of terrain. (See FM 3-34)",
+    "sidc": "10031000171200000000000000000000",
+    "exampleUnit": "Engineer battalion",
+    "tags": ["engineer", "combat engineer", "sapper", "mobility", "counter-mobility", "survivability", "protection"]
+  },
+  {
+    "id": "fbi",
+    "name": "Federal Bureau of Investigation (FBI)",
+    "symbolCode": "FBI",
+    "category": "Protection",
+    "definition": "The civil authority domestic intelligence and security service of the United States and its principal federal law enforcement agency. (See FBI.gov)",
+    "sidc": "10031000171602000000000000000000",
+    "exampleUnit": "FBI team",
+    "tags": ["FBI", "law enforcement", "civil authority", "protection"]
+  },
+  {
+    "id": "fire-department",
+    "name": "Fire Department",
+    "symbolCode": null,
+    "category": "Protection",
+    "definition": "The civil authority firefighting organization that operates within a municipality, county, state, nation, or special district providing firefighting, emergency medical services, and hazmat mitigation.",
+    "sidc": "10031000171603000000000000000000",
+    "exampleUnit": "Fire department battalion",
+    "tags": ["fire department", "firefighting", "civil authority", "protection"]
+  },
+  {
+    "id": "maneuver-enhancement",
+    "name": "Maneuver Enhancement",
+    "symbolCode": null,
+    "category": "Protection",
+    "definition": "Provides command and control of forces from multiple branches, especially those that conduct support area and maneuver support operations for the force. (See FM 3-81)",
+    "sidc": "10031000171300000000000000000000",
+    "exampleUnit": "Maneuver enhancement brigade",
+    "tags": ["maneuver enhancement", "MEB", "protection"]
+  },
+  {
+    "id": "military-police",
+    "name": "Military Police",
+    "symbolCode": "MP",
+    "category": "Protection",
+    "definition": "Provides law enforcement activities to control and protect populations and resources to facilitate the existence of a lawful and orderly environment. (See FM 3-39)",
+    "sidc": "10031000171400000000000000000000",
+    "exampleUnit": "Military police battalion",
+    "tags": ["MP", "military police", "law enforcement", "protection"]
+  },
+  {
+    "id": "police-department",
+    "name": "Police Department",
+    "symbolCode": null,
+    "category": "Protection",
+    "definition": "A civil authority constituted body of persons empowered and authorized by a state to enforce the law, ensure the safety, health, and possessions of citizens, and to prevent crime and civil disorder.",
+    "sidc": "10031000171604000000000000000000",
+    "exampleUnit": "Police unit",
+    "tags": ["police", "law enforcement", "civil authority", "protection"]
+  },
+  {
+    "id": "security",
+    "name": "Security",
+    "symbolCode": "SEC",
+    "category": "Protection",
+    "definition": "Measures taken by a military unit, activity, or installation to protect itself against all acts designed to, or which may, impair its effectiveness. (JP 3-10)",
+    "sidc": "10031000171500000000000000000000",
+    "exampleUnit": "Security team",
+    "tags": ["security", "protection"]
+  },
+  {
+    "id": "us-marshal-service",
+    "name": "United States Marshal Service",
+    "symbolCode": null,
+    "category": "Protection",
+    "definition": "A civil authority bureau within the US Department of Justice, operating under the direction of the Attorney General, responsible for protection of judges and judicial personnel, administration of fugitive operations, and management of criminal assets.",
+    "sidc": "10031000171605000000000000000000",
+    "exampleUnit": "Marshal Service unit",
+    "tags": ["US Marshals", "law enforcement", "civil authority", "protection"]
+  },
+  {
+    "id": "us-secret-service",
+    "name": "United States Secret Service",
+    "symbolCode": "USSS",
+    "category": "Protection",
+    "definition": "A federal law enforcement agency under the Department of Homeland Security charged with conducting criminal investigations and protecting US political leaders, their families, and visiting heads of state or government. (See secretservice.gov)",
+    "sidc": "10031000171606000000000000000000",
+    "exampleUnit": "Secret Service team",
+    "tags": ["Secret Service", "USSS", "law enforcement", "protection"]
+  },
+  {
+    "id": "uas",
+    "name": "Unmanned Aircraft System",
+    "symbolCode": null,
+    "category": "Protection",
+    "definition": "That system whose components include the necessary equipment, network, and personnel to control an unmanned aircraft. (JP 3-30)",
+    "sidc": "10031000120300000000000000000000",
+    "exampleUnit": "Unmanned aircraft system platoon",
+    "tags": ["UAS", "drone", "unmanned", "UAV", "RPA", "protection"]
+  },
+  {
+    "id": "aerial-delivery",
+    "name": "Aerial Delivery / Rigger",
+    "symbolCode": null,
+    "category": "Sustainment",
+    "definition": "Aerial delivery is the air transport of cargo, equipment, and personnel to a desired location on the ground by aircraft. (ATP 4-48) Rigger provides parachute packing, aerial delivery equipment repair, and rigging equipment and supplies for airdrop.",
+    "sidc": "10031000401100000000000000000000",
+    "exampleUnit": "Rigger platoon",
+    "tags": ["rigger", "aerial delivery", "airdrop", "parachute", "sustainment"]
+  },
+  {
+    "id": "army-field-support",
+    "name": "Army Field Support",
+    "symbolCode": "AFS",
+    "category": "Sustainment",
+    "definition": "Integrates and synchronizes delivery of US Army Materiel Command strategic capabilities and enablers to the operational and tactical points of need in support of Army Service component commands and corps during large-scale combat operations. (See FM 4-0)",
+    "sidc": "10031000401200000000000000000000",
+    "exampleUnit": "Army field support brigade",
+    "tags": ["AFS", "Army field support", "AMC", "sustainment", "logistics"]
+  },
+  {
+    "id": "ammunition",
+    "name": "Ammunition",
+    "symbolCode": null,
+    "category": "Sustainment",
+    "definition": "Provides effective and efficient handling, storing, securing, distributing, and accounting for munitions while ensuring adequate explosives safety guidelines are met. (See ATP 4-35 and ATP 4-35.1)",
+    "sidc": "10031000401300000000000000000000",
+    "exampleUnit": "Ammunition platoon",
+    "tags": ["ammunition", "ammo", "munitions", "sustainment", "logistics"]
+  },
+  {
+    "id": "band",
+    "name": "Band",
+    "symbolCode": null,
+    "category": "Sustainment",
+    "definition": "Serves as a combat multiplier and plays an integral part in the sustainment of forces engaged in unified land operations. (See ATP 1-19)",
+    "sidc": "10031000401400000000000000000000",
+    "exampleUnit": "Band performance headquarters detachment",
+    "tags": ["band", "music", "sustainment"]
+  },
+  {
+    "id": "contracting-support",
+    "name": "Contracting Support",
+    "symbolCode": "KS",
+    "category": "Sustainment",
+    "definition": "The planning, coordination, and execution of contracting authority to legally bind contractors in support of military operations. (JP 4-10)",
+    "sidc": "10031000401500000000000000000000",
+    "exampleUnit": "Contracting support team",
+    "tags": ["contracting", "KS", "LOGCAP", "sustainment"]
+  },
+  {
+    "id": "eod",
+    "name": "Explosive Ordnance Disposal (EOD)",
+    "symbolCode": "EOD",
+    "category": "Sustainment",
+    "definition": "The process to detect, locate, access, diagnose, render safe/neutralize, recover, exploit, and dispose of explosive or improvised explosive threats. (JP 3-42)",
+    "sidc": "10031000401600000000000000000000",
+    "exampleUnit": "Explosive ordnance disposal (EOD) team",
+    "tags": ["EOD", "explosive ordnance disposal", "IED", "bomb disposal", "sustainment"]
+  },
+  {
+    "id": "field-feeding",
+    "name": "Field Feeding",
+    "symbolCode": null,
+    "category": "Sustainment",
+    "definition": "The sustained tactical feeding to meet commander's needs as determined by the mission, enemy, terrain and weather, troops and support available, time available, and civilian considerations. (See FM 4-0 and ATP 4-41)",
+    "sidc": "10031000401700000000000000000000",
+    "exampleUnit": "Field feeding company",
+    "tags": ["field feeding", "food service", "DFAC", "sustainment"]
+  },
+  {
+    "id": "finance-operations",
+    "name": "Finance Operations",
+    "symbolCode": null,
+    "category": "Sustainment",
+    "definition": "The execution of the joint financial management mission to provide financial advice and guidance, support the procurement process, provide pay support, and provide banking and disbursing support. (See FM 1-06)",
+    "sidc": "10031000401800000000000000000000",
+    "exampleUnit": "Finance platoon",
+    "tags": ["finance", "financial management", "pay", "sustainment"]
+  },
+  {
+    "id": "human-resources",
+    "name": "Human Resources",
+    "symbolCode": "HR",
+    "category": "Sustainment",
+    "definition": "Provides operational effectiveness of the Army by anticipating, manning, and sustaining military operations. (See FM 1-0)",
+    "sidc": "10031000401900000000000000000000",
+    "exampleUnit": "Human resources platoon",
+    "tags": ["HR", "human resources", "personnel", "S1", "sustainment"]
+  },
+  {
+    "id": "jag",
+    "name": "Judge Advocate General (JAG)",
+    "symbolCode": "JAG",
+    "category": "Sustainment",
+    "definition": "Provides subject matter experts in the core legal disciplines and are counselors, advocates, and trusted advisors to commanders and Soldiers. (See FM 3-84)",
+    "sidc": "10031000402000000000000000000000",
+    "exampleUnit": "Judge advocate general section",
+    "tags": ["JAG", "judge advocate", "legal", "law of armed conflict", "LOAC", "sustainment"]
+  },
+  {
+    "id": "maintenance",
+    "name": "Maintenance",
+    "symbolCode": null,
+    "category": "Sustainment",
+    "definition": "Ensures unit readiness by maintaining weapons systems and equipment in a fully mission-capable status for immediate and continuous employment in complex and highly lethal environments. (See FM 4-0 and ATP 4-33)",
+    "sidc": "10031000402100000000000000000000",
+    "exampleUnit": "Maintenance platoon",
+    "tags": ["maintenance", "FMC", "repairs", "sustainment", "logistics"]
+  },
+  {
+    "id": "medical",
+    "name": "Medical",
+    "symbolCode": null,
+    "category": "Sustainment",
+    "definition": "Promotes, improves, conserves, or restores the behavioral and physical well-being of personnel in the Army, and as directed in other Services, agencies, and organizations. (See FM 4-02)",
+    "sidc": "10031000402200000000000000000000",
+    "exampleUnit": "Medical company",
+    "tags": ["medical", "medic", "CLS", "Role 1", "Role 2", "Role 3", "sustainment"]
+  },
+  {
+    "id": "medical-treatment-facility",
+    "name": "Medical Treatment Facility",
+    "symbolCode": null,
+    "category": "Sustainment",
+    "definition": "Any facility established for the purpose of providing medical treatment. This includes battalion aid stations, Role 2 facilities, dispensaries, clinics, and hospitals. (FM 4-02)",
+    "sidc": "10031000402201000000000000000000",
+    "exampleUnit": "Medical treatment facility company",
+    "tags": ["MTF", "aid station", "hospital", "Role 2", "Role 3", "medical", "sustainment"]
+  },
+  {
+    "id": "mortuary-affairs",
+    "name": "Mortuary Affairs",
+    "symbolCode": null,
+    "category": "Sustainment",
+    "definition": "Provides for the search, recovery, identification, preparation, and disposition of human remains of persons for whom the Services are responsible by status and executive order. (JP 4-0)",
+    "sidc": "10031000402300000000000000000000",
+    "exampleUnit": "Mortuary affairs platoon",
+    "tags": ["mortuary affairs", "PERE", "remains", "sustainment"]
+  },
+  {
+    "id": "ordnance",
+    "name": "Ordnance",
+    "symbolCode": null,
+    "category": "Sustainment",
+    "definition": "Provides munitions, maintenance, and explosive ordnance disposal support to generate and maintain combat power and to provide protection to Army, joint, intergovernmental, interagency, and multinational forces. (See FM 4-0)",
+    "sidc": "10031000402400000000000000000000",
+    "exampleUnit": "Ordnance company",
+    "tags": ["ordnance", "munitions", "sustainment", "logistics"]
+  },
+  {
+    "id": "quartermaster",
+    "name": "Quartermaster",
+    "symbolCode": null,
+    "category": "Sustainment",
+    "definition": "Provides supply and field services to enable freedom of action, extend operational reach, and prolong endurance. (See FM 4-0)",
+    "sidc": "10031000402500000000000000000000",
+    "exampleUnit": "Quartermaster company",
+    "tags": ["quartermaster", "QM", "supply", "Class I", "Class III", "Class V", "sustainment", "logistics"]
+  },
+  {
+    "id": "religious-support",
+    "name": "Religious Support",
+    "symbolCode": "REL",
+    "category": "Sustainment",
+    "definition": "Provides for the free exercise of religion and religious, moral, and ethical advisement and leadership. (See FM 1-05)",
+    "sidc": "10031000402600000000000000000000",
+    "exampleUnit": "Religious support section",
+    "tags": ["religious support", "chaplain", "REL", "sustainment"]
+  },
+  {
+    "id": "shower-laundry",
+    "name": "Shower and Laundry Operations",
+    "symbolCode": null,
+    "category": "Sustainment",
+    "definition": "Operations that provide shower and laundry services in direct support to the health and morale of all deployed Soldiers. (See ATP 4-42)",
+    "sidc": "10031000402700000000000000000000",
+    "exampleUnit": "Shower and laundry supply company",
+    "tags": ["shower", "laundry", "field services", "sustainment"]
+  },
+  {
+    "id": "support",
+    "name": "Support",
+    "symbolCode": "SPT",
+    "category": "Sustainment",
+    "definition": "1. The action of a force that aids, protects, complements, or sustains another force. 2. A unit that helps another unit in battle. 3. An element of a command that assists, protects, or supplies other forces in combat. (JP 1 VOL 2)",
+    "sidc": "10031000402800000000000000000000",
+    "exampleUnit": "Forward support company",
+    "tags": ["SPT", "support", "FSC", "BSB", "sustainment"]
+  },
+  {
+    "id": "sustainment",
+    "name": "Sustainment",
+    "symbolCode": "SUST",
+    "category": "Sustainment",
+    "definition": "The provision of logistics, financial management, personnel services, and health service support necessary to maintain operations until successful mission completion. (ADP 4-0)",
+    "sidc": "10031000402900000000000000000000",
+    "exampleUnit": "Sustainment brigade",
+    "tags": ["sustainment", "SUST", "logistics", "BSB", "ESC", "TSC"]
+  },
+  {
+    "id": "transportation",
+    "name": "Transportation",
+    "symbolCode": null,
+    "category": "Sustainment",
+    "definition": "A logistics function that includes movement control and associated activities to incorporate military, commercial, and multinational motor, rail, air, and water mode assets in the movement of units, personnel, equipment, and supplies. (FM 1-02.1)",
+    "sidc": "10031000403000000000000000000000",
+    "exampleUnit": "Transportation company",
+    "tags": ["transportation", "motor transport", "CSTC", "sustainment", "logistics"]
+  },
+  {
+    "id": "civil-affairs",
+    "name": "Civil Affairs",
+    "symbolCode": "CA",
+    "category": "Special Operations",
+    "definition": "Designated Active and Reserve Component forces and units organized, trained, and equipped specifically to conduct civil affairs operations and to support civil-military operations. (JP 3-57)",
+    "sidc": "10031000151600000000000000000000",
+    "exampleUnit": "Civil affairs team",
+    "tags": ["civil affairs", "CA", "CIMIC", "CMO", "special operations", "ARSOF"]
+  },
+  {
+    "id": "civil-military-cooperation",
+    "name": "Civil-Military Cooperation",
+    "symbolCode": null,
+    "category": "Special Operations",
+    "definition": "(NATO) A joint function comprising a set of capabilities integral to supporting the achievement of mission objectives and enabling NATO commands to participate effectively in a broad spectrum of civil-military interaction. (APP-6)",
+    "sidc": "10031000151601000000000000000000",
+    "exampleUnit": "Civil-military cooperation team",
+    "tags": ["CIMIC", "civil-military cooperation", "NATO", "special operations"]
+  },
+  {
+    "id": "psychological-operations",
+    "name": "Psychological Operations",
+    "symbolCode": null,
+    "category": "Special Operations",
+    "definition": "A robust military influence capability. (See FM 3-53)",
+    "sidc": "10031000151700000000000000000000",
+    "exampleUnit": "Psychological Operations battalion",
+    "tags": ["PSYOP", "psychological operations", "MISO", "influence", "special operations", "ARSOF"]
+  },
+  {
+    "id": "rangers",
+    "name": "Rangers",
+    "symbolCode": "RGR",
+    "category": "Special Operations",
+    "definition": "Rapidly deployable airborne light infantry organized and trained to conduct highly complex joint direct action operations in coordination with or in support of other special operations units of all Services. (JP 3-05)",
+    "sidc": "10031000151800000000000000000000",
+    "exampleUnit": "Ranger battalion",
+    "tags": ["ranger", "RGR", "75th Ranger Regiment", "airborne", "direct action", "special operations"]
+  },
+  {
+    "id": "search-and-rescue",
+    "name": "Search and Rescue",
+    "symbolCode": "SAR",
+    "category": "Special Operations",
+    "definition": "The use of aircraft, surface craft, submarines, and specialized rescue teams and equipment to search for and rescue distressed persons on land or at sea in a permissive environment. (JP 3-50)",
+    "sidc": "10031000151900000000000000000000",
+    "exampleUnit": "Search and rescue team",
+    "tags": ["SAR", "search and rescue", "CSAR", "personnel recovery", "special operations"]
+  },
+  {
+    "id": "seal-team",
+    "name": "SEAL Team",
+    "symbolCode": "SEAL",
+    "category": "Special Operations",
+    "definition": "United States Navy forces organized, trained, and equipped to conduct special operations with an emphasis on maritime, coastal, and riverine environments. (JP 3-05)",
+    "sidc": "10031000152000000000000000000000",
+    "exampleUnit": "SEAL team",
+    "tags": ["SEAL", "Navy SEAL", "NAVSPECWAR", "maritime", "special operations", "SOF"]
+  },
+  {
+    "id": "special-forces",
+    "name": "Special Forces",
+    "symbolCode": "SF",
+    "category": "Special Operations",
+    "definition": "United States Army forces organized, trained, and equipped to conduct special operations with an emphasis on unconventional warfare capabilities. (JP 3-05)",
+    "sidc": "10031000152100000000000000000000",
+    "exampleUnit": "Special forces company",
+    "tags": ["SF", "special forces", "Green Berets", "UW", "FID", "DA", "special operations", "ARSOF", "SOF"]
+  },
+  {
+    "id": "special-operations-forces",
+    "name": "Special Operations Forces",
+    "symbolCode": "SOF",
+    "category": "Special Operations",
+    "definition": "Those Active and Reserve Component forces of the Services designated by the Secretary of Defense and specifically organized, trained, and equipped to conduct and support special operations. (JP 3-05)",
+    "sidc": "10031000152200000000000000000000",
+    "exampleUnit": "Special operations forces group",
+    "tags": ["SOF", "special operations forces", "SOCOM", "special operations"]
+  },
+  {
+    "id": "multidomain-operations",
+    "name": "Multidomain Operations",
+    "symbolCode": null,
+    "category": "Multidomain Operations",
+    "definition": "The combined arms employment of joint and Army capabilities to create and exploit relative advantages to achieve objectives, defeat enemy forces, and consolidate gains on behalf of joint force commanders. (FM 3-0)",
+    "sidc": "10031000141400000000000000000000",
+    "exampleUnit": "Multidomain operations task force command",
+    "tags": ["multidomain", "MDO", "joint", "combined arms"]
+  }
+]

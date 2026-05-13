@@ -145,13 +145,20 @@ function SymbolPreview({ sidc }: { sidc: string }) {
 // ── SIDCDisplay ───────────────────────────────────────────────────────────────
 
 function SIDCDisplay({ sidc }: { sidc: string }) {
-  const { width } = useWindowDimensions();
-  const charPx       = (width - SIDC_PAD * 2) / TOTAL_CHAR_UNITS;
-  const digitFs      = Math.round(charPx * 0.85);
-  const setFs        = Math.round(charPx * 0.6);
+  const { width: windowWidth } = useWindowDimensions();
+  const [outerWidth, setOuterWidth] = useState(0);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
+  // useWindowDimensions() returns 0 during SSR (static export), so fall back to
+  // a typical phone width so the math never produces negative font-sizes/widths.
+  const effWidth = outerWidth > 0 ? outerWidth
+                 : windowWidth > 0 ? windowWidth
+                 : 375;
+  const charPx  = (effWidth - SIDC_PAD * 2) / TOTAL_CHAR_UNITS;
+  const digitFs = Math.max(Math.round(charPx * 0.85), 8);
+  const setFs   = Math.max(Math.round(charPx * 0.6), 6);
 
   const items = buildItems(sidc);
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   // x-offset (px) of each item in the digit row
   const offsets = items.reduce<number[]>((acc, item, i) => {
@@ -164,7 +171,10 @@ function SIDCDisplay({ sidc }: { sidc: string }) {
   const tooltipLeft  = hoveredIdx !== null ? offsets[hoveredIdx] : 0;
 
   return (
-    <View style={{ paddingHorizontal: SIDC_PAD, paddingBottom: 12 }}>
+    <View
+      style={{ paddingHorizontal: SIDC_PAD, paddingBottom: 12 }}
+      onLayout={e => setOuterWidth(e.nativeEvent.layout.width)}
+    >
 
       {/* Set label row */}
       <View style={{ flexDirection: 'row', marginBottom: 4 }}>
@@ -210,6 +220,7 @@ function SIDCDisplay({ sidc }: { sidc: string }) {
                   {...(Platform.OS === 'web' ? {
                     onMouseEnter: () => setHoveredIdx(i),
                     onMouseLeave: () => setHoveredIdx(null),
+                    title: item.label,
                   } : {}) as any}
                 >
                   <Text style={{

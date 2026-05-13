@@ -1,18 +1,18 @@
-import { useState, useMemo } from 'react';
 import { ENTITY_OPTIONS } from '@/assets/data/entityOptions';
 import ms from 'milsymbol';
-import { SvgXml } from 'react-native-svg';
+import { useMemo, useState } from 'react';
 import {
-  View,
+  Platform,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  Platform,
   useWindowDimensions,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SvgXml } from 'react-native-svg';
 
 // ── Domain / Sub-domain ───────────────────────────────────────────────────────
 
@@ -155,8 +155,8 @@ function SIDCDisplay({ sidc }: { sidc: string }) {
                  : windowWidth > 0 ? windowWidth
                  : 375;
   const charPx  = (effWidth - SIDC_PAD * 2) / TOTAL_CHAR_UNITS;
-  const digitFs = Math.max(Math.round(charPx * 0.85), 8);
-  const setFs   = Math.max(Math.round(charPx * 0.6), 6);
+  const digitFs = Math.max(Math.round(charPx * 0.85), 16);
+  const setFs   = Math.max(Math.round(charPx * 0.6), 12);
 
   const items = buildItems(sidc);
 

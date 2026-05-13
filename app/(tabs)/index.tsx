@@ -149,10 +149,9 @@ function SIDCDisplay({ sidc }: { sidc: string }) {
   const [outerWidth, setOuterWidth] = useState(0);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
-  // useWindowDimensions() returns 0 during SSR (static export), so fall back to
-  // a typical phone width so the math never produces negative font-sizes/widths.
+  // Use a sensible default width for static builds
   const effWidth = outerWidth > 0 ? outerWidth
-                 : windowWidth > 0 ? windowWidth
+                 : windowWidth > 0 ? Math.min(windowWidth - 32, 600)  // cap at 600px, account for padding
                  : 375;
   const charPx  = (effWidth - SIDC_PAD * 2) / TOTAL_CHAR_UNITS;
   const digitFs = Math.max(Math.round(charPx * 0.85), 16);

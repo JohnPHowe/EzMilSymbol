@@ -1,6 +1,6 @@
 import { ENTITY_OPTIONS } from '@/assets/data/entityOptions';
 import ms from 'milsymbol';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Platform,
   ScrollView,
@@ -146,12 +146,21 @@ function SymbolPreview({ sidc }: { sidc: string }) {
 
 function SIDCDisplay({ sidc }: { sidc: string }) {
   const { width: windowWidth } = useWindowDimensions();
-  const [outerWidth, setOuterWidth] = useState(0);
+  const [clientWidth, setClientWidth] = useState(0);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
-  // Use a sensible default width for static builds
-  const effWidth = outerWidth > 0 ? outerWidth
-                 : windowWidth > 0 ? windowWidth - 32
+  // On web, read window.innerWidth after mount so the static pre-render
+  // (which has no real window) doesn't lock in a narrow fallback width.
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const update = () => setClientWidth((window as any).innerWidth ?? 0);
+    update();
+    (window as any).addEventListener('resize', update);
+    return () => (window as any).removeEventListener('resize', update);
+  }, []);
+
+  const effWidth = clientWidth > 0 ? clientWidth
+                 : windowWidth > 0 ? windowWidth
                  : 375;
   const charPx  = (effWidth - SIDC_PAD * 2) / TOTAL_CHAR_UNITS;
   const digitFs = Math.max(Math.round(charPx * 0.85), 16);
@@ -172,7 +181,6 @@ function SIDCDisplay({ sidc }: { sidc: string }) {
   return (
     <View
       style={{ paddingHorizontal: SIDC_PAD, paddingBottom: 12 }}
-      onLayout={e => setOuterWidth(e.nativeEvent.layout.width)}
     >
 
       {/* Set label row */}
@@ -211,7 +219,7 @@ function SIDCDisplay({ sidc }: { sidc: string }) {
           {items.map((item, i) =>
             item.kind === 'sep'
               ? <View key={i} style={{ width: charPx }}>
-                  <Text style={{ fontSize: digitFs, fontFamily: MONO, color: '#9CA3AF' }}>-</Text>
+                  <Text numberOfLines={1} style={{ fontSize: digitFs, fontFamily: MONO, color: '#9CA3AF' }}>-</Text>
                 </View>
               : <View
                   key={i}
@@ -222,7 +230,7 @@ function SIDCDisplay({ sidc }: { sidc: string }) {
                     title: item.label,
                   } : {}) as any}
                 >
-                  <Text style={{
+                  <Text numberOfLines={1} style={{
                     fontSize: digitFs, fontFamily: MONO,
                     color: hoveredIdx === i ? '#0a7ea4' : '#11181C',
                   }}>

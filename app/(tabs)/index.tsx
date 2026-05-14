@@ -151,7 +151,7 @@ function SIDCDisplay({ sidc }: { sidc: string }) {
 
   // Use a sensible default width for static builds
   const effWidth = outerWidth > 0 ? outerWidth
-                 : windowWidth > 0 ? Math.min(windowWidth - 32, 600)  // cap at 600px, account for padding
+                 : windowWidth > 0 ? windowWidth - 32
                  : 375;
   const charPx  = (effWidth - SIDC_PAD * 2) / TOTAL_CHAR_UNITS;
   const digitFs = Math.max(Math.round(charPx * 0.85), 16);

@@ -258,7 +258,11 @@ function Dropdown({
   zIndex?: number;
 }) {
   const [open, setOpen] = useState(false);
-  const selected = options.find(o => o.value === value);
+  const sorted = useMemo(
+    () => [...options].sort((a, b) => a.label.localeCompare(b.label)),
+    [options]
+  );
+  const selected = sorted.find(o => o.value === value);
 
   return (
     <View style={[styles.dropdownWrapper, { zIndex }]}>
@@ -275,7 +279,7 @@ function Dropdown({
 
       {open && (
         <View style={styles.dropdownList}>
-          {options.map(opt => (
+          {sorted.map(opt => (
             <TouchableOpacity
               key={opt.value}
               style={[styles.dropdownItem, opt.value === value && styles.dropdownItemSelected]}

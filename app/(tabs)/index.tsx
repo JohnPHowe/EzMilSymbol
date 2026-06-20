@@ -1,8 +1,9 @@
 import { ENTITY_OPTIONS, type EntityDef, type EntityType } from '@/assets/data/entityOptions';
 import { MODIFIER1_OPTIONS, MODIFIER2_OPTIONS } from '@/assets/data/modifierOptions';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Fuse from 'fuse.js';
 import ms from 'milsymbol';
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useMemo, useState, type ComponentProps } from 'react';
 import {
   Platform,
   ScrollView,
@@ -21,6 +22,14 @@ type Domain = 'Air' | 'Land' | 'Space' | 'Surface' | 'Subsurface';
 type Option = { label: string; value: string };
 
 const DOMAINS: Domain[] = ['Air', 'Land', 'Space', 'Surface', 'Subsurface'];
+
+const DOMAIN_ICONS: Record<Domain, ComponentProps<typeof FontAwesome6>['name']> = {
+  Air: 'wind',
+  Land: 'mountain',
+  Space: 'moon',
+  Surface: 'water',
+  Subsurface: 'anchor',
+};
 
 const SYMBOL_SETS: Record<Domain, Option[]> = {
   Air: [
@@ -129,6 +138,46 @@ function SymbolPreview({ sidc }: { sidc: string }) {
       <View style={{ width: MAX_W, height: MAX_H, justifyContent: 'center', alignItems: 'center' }}>
         {svg && <SvgXml xml={svg} width={displayW} height={displayH} />}
       </View>
+    </View>
+  );
+}
+
+// ── Downloads ─────────────────────────────────────────────────────────────────
+
+function triggerDownload(url: string, filename: string) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+}
+
+function downloadSymbolSVG(sidc: string) {
+  const symbol = new ms.Symbol(sidc, { size: 200 });
+  const blob = new Blob([symbol.asSVG()], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(blob);
+  triggerDownload(url, 'symbol.svg');
+  URL.revokeObjectURL(url);
+}
+
+function downloadSymbolPNG(sidc: string) {
+  const symbol = new ms.Symbol(sidc, { size: 200 });
+  const canvas = symbol.asCanvas(2);
+  triggerDownload(canvas.toDataURL('image/png'), 'symbol.png');
+}
+
+function DownloadButtons({ sidc }: { sidc: string }) {
+  if (Platform.OS !== 'web') return null;
+
+  return (
+    <View style={styles.downloadRow}>
+      <TouchableOpacity style={styles.downloadButton} onPress={() => downloadSymbolPNG(sidc)} activeOpacity={0.7}>
+        <FontAwesome6 name="file-arrow-down" size={14} color="#11181C" />
+        <Text style={styles.downloadButtonText}>PNG</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.downloadButton} onPress={() => downloadSymbolSVG(sidc)} activeOpacity={0.7}>
+        <FontAwesome6 name="file-arrow-down" size={14} color="#11181C" />
+        <Text style={styles.downloadButtonText}>SVG</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -304,12 +353,14 @@ function SIDCDisplay({ sidc }: { sidc: string }) {
 
 // ── EntityTypeGrid ────────────────────────────────────────────────────────────
 
-function QuestionMarkTile({
+function DomainTile({
   label,
+  icon,
   selected,
   onPress,
 }: {
   label: string;
+  icon: ComponentProps<typeof FontAwesome6>['name'];
   selected: boolean;
   onPress: () => void;
 }) {
@@ -320,7 +371,7 @@ function QuestionMarkTile({
       activeOpacity={0.7}
     >
       <View style={styles.tileIconWrap}>
-        <Text style={styles.breadcrumbIconGlyph}>?</Text>
+        <FontAwesome6 name={icon} size={28} color="#687076" />
       </View>
       <Text style={styles.tileLabel} numberOfLines={2}>{label}</Text>
     </TouchableOpacity>
@@ -885,6 +936,7 @@ export default function LookupScreen() {
               <Text style={styles.resetIcon}>Reset ↺</Text>
             </TouchableOpacity>
           </View>
+          <DownloadButtons sidc={sidc} />
         </View>
 
         <View style={styles.topDivider} />
@@ -892,9 +944,8 @@ export default function LookupScreen() {
         <AffiliationPicker baseSidc={sidc} affiliation={affiliation} onSelect={setAffiliation} />
       </View>
 
-      <SIDCDisplay sidc={sidc} />
-
       <View style={styles.searchWrapper}>
+        <Text style={[styles.sectionHeading, { marginBottom: 16 }]}>Search</Text>
         <TextInput
           style={styles.search}
           placeholder="Search by name, category, or tag…"
@@ -947,7 +998,7 @@ export default function LookupScreen() {
                 step: 1,
                 label: 'Domain',
                 display: domain,
-                placeholder: 'Select a domain…',
+                placeholder: 'Domain',
                 value: domain,
                 options: DOMAINS.map(d => ({ value: d, label: d })),
                 onSelect: v => { handleDomainSelect(v as Domain); setOpenStep(2); },
@@ -956,7 +1007,7 @@ export default function LookupScreen() {
                 step: 2,
                 label: 'Sub-domain',
                 display: symbolSetLabel,
-                placeholder: 'Select a sub-domain…',
+                placeholder: 'Sub-domain',
                 value: symbolSet,
                 options: SYMBOL_SETS[domain],
                 onSelect: (v: string) => {
@@ -968,7 +1019,7 @@ export default function LookupScreen() {
                 step: 3,
                 label: 'Entity',
                 display: entityDef?.label ?? null,
-                placeholder: 'Select an entity…',
+                placeholder: 'Entity',
                 value: entity,
                 options: entityData ? entityData.map(e => ({ value: e.value, label: e.label })) : [],
                 onSelect: (v: string) => {
@@ -981,7 +1032,7 @@ export default function LookupScreen() {
                 step: 4,
                 label: 'Type',
                 display: entityTypeDef?.label ?? null,
-                placeholder: 'Select a type…',
+                placeholder: 'Type',
                 value: entityType,
                 options: entityDef.types.map(t => ({ value: t.value, label: t.label })),
                 onSelect: (v: string) => {
@@ -994,7 +1045,7 @@ export default function LookupScreen() {
                 step: 5,
                 label: 'Subtype',
                 display: entityTypeDef.subtypes.find(s => s.value === entitySubtype)?.label ?? null,
-                placeholder: 'Select a subtype…',
+                placeholder: 'Subtype',
                 value: entitySubtype,
                 options: entityTypeDef.subtypes,
                 onSelect: (v: string) => { setEntitySubtype(v); setOpenStep(null); },
@@ -1006,9 +1057,10 @@ export default function LookupScreen() {
             <View style={styles.gridSection}>
               <View style={styles.gridRow}>
                 {DOMAINS.map(d => (
-                  <QuestionMarkTile
+                  <DomainTile
                     key={d}
                     label={d}
+                    icon={DOMAIN_ICONS[d]}
                     selected={false}
                     onPress={() => { handleDomainSelect(d); setOpenStep(2); }}
                   />
@@ -1245,6 +1297,8 @@ export default function LookupScreen() {
           </View>
           </View>
         </View>
+
+        <SIDCDisplay sidc={sidc} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -1317,6 +1371,23 @@ const styles = StyleSheet.create({
   },
   resetButton: { padding: 8, marginLeft: 20 },
   resetIcon: { fontSize: 22, color: '#0a7ea4' },
+  downloadRow: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingTop: 4,
+  },
+  downloadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  downloadButtonText: { fontSize: 13, color: '#11181C', fontWeight: '600' },
   topDivider: {
     width: StyleSheet.hairlineWidth,
     backgroundColor: '#D1D5DB',
@@ -1439,11 +1510,6 @@ const styles = StyleSheet.create({
         elevation: 4,
       },
     }),
-  },
-  breadcrumbIconGlyph: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#9CA3AF',
   },
   placeholderText: { fontSize: 15, color: '#9CA3AF', fontStyle: 'italic' },
   dropdownItem:             { paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB' },

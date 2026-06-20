@@ -499,7 +499,7 @@ export default function LookupScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        <Text style={[styles.sectionHeading, { marginBottom: 20 }]}>Guided Discovery</Text>
+        <Text style={[styles.sectionHeading, { marginBottom: 20 }]}>Entity Discovery</Text>
 
         <View style={{ flexDirection: 'row', gap: 24 }}>
 

@@ -765,4 +765,194 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
     { value: '16', label: 'Fused Track', types: [] },
     { value: '17', label: 'Manual Track', types: [] },
   ],
+
+  // ── Air Missile (symbolSet "02") ────────────────────────────────────────────
+  '02': [
+    { value: '11', label: 'Air Missile', types: [] },
+  ],
+
+  // ── Space Missile (symbolSet "06") ──────────────────────────────────────────
+  '06': [
+    { value: '11', label: 'Space Missile', types: [] },
+  ],
+
+  // ── Space (symbolSet "05") ──────────────────────────────────────────────────
+  '05': [
+    { value: '11', label: 'Military', types: [
+      { value: '01', label: 'Space Vehicle', subtypes: [] },
+      { value: '02', label: 'Re-entry Vehicle', subtypes: [] },
+      { value: '03', label: 'Planet Lander', subtypes: [] },
+      { value: '04', label: 'Orbiter Shuttle', subtypes: [] },
+      { value: '05', label: 'Capsule', subtypes: [] },
+      { value: '06', label: 'Satellite, General', subtypes: [] },
+      { value: '07', label: 'Satellite', subtypes: [] },
+      { value: '08', label: 'Antisatellite Weapon', subtypes: [] },
+      { value: '09', label: 'Astronomical Satellite', subtypes: [] },
+      { value: '10', label: 'Biosatellite', subtypes: [] },
+      { value: '11', label: 'Communications Satellite', subtypes: [] },
+      { value: '12', label: 'Earth Observation Satellite', subtypes: [] },
+      { value: '13', label: 'Miniaturized Satellite', subtypes: [] },
+      { value: '14', label: 'Navigational Satellite', subtypes: [] },
+      { value: '15', label: 'Reconnaissance Satellite', subtypes: [] },
+      { value: '16', label: 'Space Station', subtypes: [] },
+      { value: '17', label: 'Tethered Satellite', subtypes: [] },
+      { value: '18', label: 'Weather Satellite', subtypes: [] },
+      { value: '19', label: 'Space Launch Vehicle', subtypes: [] },
+    ]},
+    { value: '12', label: 'Civilian', types: [
+      { value: '01', label: 'Orbiter Shuttle', subtypes: [] },
+      { value: '02', label: 'Capsule', subtypes: [] },
+      { value: '03', label: 'Satellite', subtypes: [] },
+      { value: '04', label: 'Astronomical Satellite', subtypes: [] },
+      { value: '05', label: 'Biosatellite', subtypes: [] },
+      { value: '06', label: 'Communications Satellite', subtypes: [] },
+      { value: '07', label: 'Earth Observation Satellite', subtypes: [] },
+      { value: '08', label: 'Miniaturized Satellite', subtypes: [] },
+      { value: '09', label: 'Navigational Satellite', subtypes: [] },
+      { value: '10', label: 'Space Station', subtypes: [] },
+      { value: '11', label: 'Tethered Satellite', subtypes: [] },
+      { value: '12', label: 'Weather Satellite', subtypes: [] },
+      { value: '13', label: 'Planetary Lander', subtypes: [] },
+      { value: '14', label: 'Space Vehicle', subtypes: [] },
+    ]},
+  ],
+
+  // ── Land Civilian Unit/Organization (symbolSet "11") ────────────────────────
+  '11': [
+    { value: '11', label: 'Civilian', types: [
+      { value: '01', label: 'Environmental Protection', subtypes: [] },
+      { value: '02', label: 'Government Organization', subtypes: [] },
+      { value: '03', label: 'Individual', subtypes: [] },
+      { value: '04', label: 'Group', subtypes: [] },
+      { value: '05', label: 'Killing Victim', subtypes: [] },
+      { value: '06', label: 'Killing Victims', subtypes: [] },
+      { value: '07', label: 'Victim of an Attempted Crime', subtypes: [] },
+      { value: '08', label: 'Spy', subtypes: [] },
+      { value: '09', label: 'Composite Loss', subtypes: [] },
+      { value: '10', label: 'Emergency Medical Operation', subtypes: [] },
+    ]},
+  ],
+
+  // ── Land Installation (symbolSet "20") ──────────────────────────────────────
+  '20': [
+    { value: '11', label: 'Military', types: [
+      { value: '01', label: 'Aircraft Production & Assembly', subtypes: [] },
+      { value: '02', label: 'Ammunition Supply (Class V)', subtypes: [] },
+      { value: '04', label: 'Fuel Tank', subtypes: [] },
+      { value: '05', label: 'Black List Location', subtypes: [] },
+      { value: '06', label: 'CBRN', subtypes: [] },
+      { value: '07', label: 'Engineering/Bridging', subtypes: [
+        { value: '01', label: 'Bridge' },
+      ]},
+      { value: '08', label: 'Equipment Manufacture', subtypes: [] },
+      { value: '09', label: 'Government', subtypes: [] },
+      { value: '10', label: 'Gray List Location', subtypes: [] },
+      { value: '11', label: 'Mass Grave Location', subtypes: [] },
+      { value: '13', label: 'Mine', subtypes: [] },
+      { value: '14', label: 'Missile Launcher', subtypes: [] },
+      { value: '15', label: 'Radioactive Material', subtypes: [] },
+      { value: '16', label: 'Printed Media', subtypes: [] },
+      { value: '17', label: 'Safe House', subtypes: [] },
+      { value: '18', label: 'White List Location', subtypes: [] },
+      { value: '19', label: 'Camp', subtypes: [
+        { value: '01', label: 'Internment' },
+        { value: '02', label: 'Training Camp' },
+      ]},
+      { value: '21', label: 'Law Enforcement', subtypes: [
+        { value: '01', label: 'Police' },
+        { value: '02', label: 'Border Patrol' },
+        { value: '03', label: 'Customs Service' },
+        { value: '08', label: 'Prison' },
+      ]},
+      { value: '22', label: 'Emergency Services', subtypes: [
+        { value: '01', label: 'Fire Protection' },
+        { value: '02', label: 'Emergency Medical' },
+      ]},
+      { value: '23', label: 'Residential', subtypes: [] },
+    ]},
+    { value: '12', label: 'Civilian', types: [
+      { value: '01', label: 'Agriculture & Food', subtypes: [
+        { value: '01', label: 'Agricultural Laboratory' },
+        { value: '04', label: 'Farm/Ranch' },
+        { value: '08', label: 'Grain Storage' },
+      ]},
+      { value: '02', label: 'Banking & Finance', subtypes: [
+        { value: '01', label: 'ATM' },
+        { value: '02', label: 'Bank' },
+        { value: '05', label: 'Federal Reserve Bank' },
+      ]},
+      { value: '03', label: 'Commercial & Industrial', subtypes: [
+        { value: '01', label: 'Chemical Plant' },
+        { value: '06', label: 'Industrial Site' },
+        { value: '08', label: 'Pharmaceutical Manufacturer' },
+      ]},
+      { value: '04', label: 'Educational', subtypes: [
+        { value: '01', label: 'College/University' },
+        { value: '02', label: 'School' },
+      ]},
+      { value: '05', label: 'Electric Power', subtypes: [
+        { value: '03', label: 'Natural Gas Facility' },
+      ]},
+    ]},
+  ],
+
+  // ── Sea Subsurface (symbolSet "35") ─────────────────────────────────────────
+  '35': [
+    { value: '11', label: 'Military', types: [
+      { value: '01', label: 'Submarine', subtypes: [
+        { value: '01', label: 'Surfaced' },
+        { value: '02', label: 'Snorkeling' },
+        { value: '03', label: 'Bottomed' },
+      ]},
+      { value: '02', label: 'Other Submersible', subtypes: [] },
+      { value: '03', label: 'Non-Submarine', subtypes: [] },
+      { value: '05', label: 'Diver', subtypes: [] },
+    ]},
+    { value: '12', label: 'Civilian', types: [
+      { value: '01', label: 'Submersible', subtypes: [] },
+      { value: '03', label: 'Diver', subtypes: [] },
+    ]},
+    { value: '13', label: 'Underwater Weapon', types: [
+      { value: '01', label: 'Torpedo', subtypes: [] },
+      { value: '02', label: 'Improvised Explosive Device (IED)', subtypes: [] },
+      { value: '03', label: 'Underwater Decoy', subtypes: [] },
+    ]},
+    { value: '20', label: 'Seabed Installation (Military)', types: [] },
+  ],
+
+  // ── Mine Warfare (symbolSet "36") ───────────────────────────────────────────
+  '36': [
+    { value: '11', label: 'Sea Mine', types: [
+      { value: '01', label: 'Bottom', subtypes: [] },
+      { value: '02', label: 'Moored', subtypes: [] },
+      { value: '03', label: 'Floating', subtypes: [] },
+      { value: '04', label: 'Rising', subtypes: [] },
+      { value: '05', label: 'Other Position', subtypes: [] },
+      { value: '06', label: 'Kingfisher', subtypes: [] },
+      { value: '07', label: 'Small Object', subtypes: [] },
+      { value: '08', label: 'Exercise Mine', subtypes: [
+        { value: '01', label: 'Bottom' },
+        { value: '02', label: 'Moored' },
+        { value: '03', label: 'Floating' },
+        { value: '04', label: 'Rising' },
+      ]},
+      { value: '09', label: 'Neutralized', subtypes: [
+        { value: '01', label: 'Bottom' },
+        { value: '02', label: 'Moored' },
+        { value: '03', label: 'Floating' },
+        { value: '04', label: 'Rising' },
+      ]},
+    ]},
+    { value: '12', label: 'Unexploded Explosive Ordnance', types: [] },
+    { value: '13', label: 'Sea Mine Decoy', types: [
+      { value: '01', label: 'Bottom/Ground', subtypes: [] },
+      { value: '02', label: 'Moored', subtypes: [] },
+    ]},
+    { value: '14', label: 'Mine-Like Contact (MILCO)', types: [
+      { value: '01', label: 'Bottom', subtypes: [] },
+      { value: '02', label: 'Moored', subtypes: [] },
+      { value: '03', label: 'Floating', subtypes: [] },
+      { value: '04', label: 'Rising', subtypes: [] },
+    ]},
+  ],
 };

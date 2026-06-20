@@ -1,6 +1,7 @@
 import { ENTITY_OPTIONS } from '@/assets/data/entityOptions';
+import { MODIFIER1_OPTIONS, MODIFIER2_OPTIONS } from '@/assets/data/modifierOptions';
 import ms from 'milsymbol';
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import {
   Platform,
   ScrollView,
@@ -8,7 +9,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -58,8 +58,7 @@ const SIDC_SETS: SetDef[] = [
     label: 'Set A',
     groups: [
       { label: 'Version',               length: 2 },
-      { label: 'Context',               length: 1 },
-      { label: 'Standard Identity',     length: 1 },
+      { label: 'Standard Identity',     length: 2 },
       { label: 'Symbol Set',            length: 2 },
       { label: 'Status',                length: 1 },
       { label: 'HQTFFD',               length: 1 },
@@ -88,32 +87,23 @@ const SIDC_SETS: SetDef[] = [
   },
 ];
 
-// Total character-width units across all three sets (digits + hyphens).
-// Set A: 10 digits + 6 hyphens = 16
-// Set B: 10 digits + 4 hyphens = 14  (+ 1 inter-set hyphen)
-// Set C: 10 digits + 4 hyphens = 14  (+ 1 inter-set hyphen)
-const TOTAL_CHAR_UNITS = 46;
-const SIDC_PAD         = 16;
-const MONO             = Platform.OS === 'ios' ? 'Menlo' : 'monospace';
-const TOOLTIP_H        = 30;
+const SIDC_PAD = 16;
+const MONO     = Platform.OS === 'ios' ? 'Menlo' : 'monospace';
+const DIGIT_FS = 26;
+const SET_FS   = 22;
 
-type RowItem =
-  | { kind: 'group'; label: string; chars: number; sidcSlice: string }
-  | { kind: 'sep' };
+// Flex units per set: digit chars + intra-set separators
+const SET_FLEX = SIDC_SETS.map(set =>
+  set.groups.reduce((s, g) => s + g.length, 0) + (set.groups.length - 1)
+);
 
-function buildItems(sidc: string): RowItem[] {
-  const items: RowItem[] = [];
-  let p = 0;
-  SIDC_SETS.forEach((set, si) => {
-    if (si > 0) items.push({ kind: 'sep' });
-    set.groups.forEach((g, gi) => {
-      if (gi > 0) items.push({ kind: 'sep' });
-      items.push({ kind: 'group', label: g.label, chars: g.length, sidcSlice: sidc.slice(p, p + g.length) });
-      p += g.length;
-    });
-  });
-  return items;
-}
+// SIDC char start position for each [set][group], computed once from SIDC_SETS
+const GROUP_STARTS: number[][] = (() => {
+  let pos = 0;
+  return SIDC_SETS.map(set =>
+    set.groups.map(g => { const s = pos; pos += g.length; return s; })
+  );
+})();
 
 // ── SymbolPreview ─────────────────────────────────────────────────────────────
 
@@ -144,103 +134,110 @@ function SymbolPreview({ sidc }: { sidc: string }) {
 
 // ── SIDCDisplay ───────────────────────────────────────────────────────────────
 
+// Flat ordered list of items for the digit row (built once from SIDC_SETS)
+type FlatItem =
+  | { kind: 'sep' }
+  | { kind: 'group'; si: number; gi: number; flex: number; start: number; length: number; label: string };
+
+const FLAT_ITEMS: FlatItem[] = (() => {
+  const items: FlatItem[] = [];
+  SIDC_SETS.forEach((set, si) => {
+    if (si > 0) items.push({ kind: 'sep' });
+    set.groups.forEach((g, gi) => {
+      if (gi > 0) items.push({ kind: 'sep' });
+      items.push({ kind: 'group', si, gi, flex: g.length, start: GROUP_STARTS[si][gi], length: g.length, label: g.label });
+    });
+  });
+  return items;
+})();
+
 function SIDCDisplay({ sidc }: { sidc: string }) {
-  const { width: windowWidth } = useWindowDimensions();
-  const [clientWidth, setClientWidth] = useState(0);
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+  const [groupX, setGroupX] = useState<Record<string, number>>({});
 
-  // On web, read window.innerWidth after mount so the static pre-render
-  // (which has no real window) doesn't lock in a narrow fallback width.
-  useEffect(() => {
-    if (Platform.OS !== 'web') return;
-    const update = () => setClientWidth((window as any).innerWidth ?? 0);
-    update();
-    (window as any).addEventListener('resize', update);
-    return () => (window as any).removeEventListener('resize', update);
-  }, []);
-
-  const effWidth = clientWidth > 0 ? clientWidth
-                 : windowWidth > 0 ? windowWidth
-                 : 375;
-  const charPx  = (effWidth - SIDC_PAD * 2) / TOTAL_CHAR_UNITS;
-  const digitFs = Math.max(Math.round(charPx * 0.85), 16);
-  const setFs   = Math.max(Math.round(charPx * 0.6), 12);
-
-  const items = buildItems(sidc);
-
-  // x-offset (px) of each item in the digit row
-  const offsets = items.reduce<number[]>((acc, item, i) => {
-    const prev = i === 0 ? 0 : acc[i - 1] + (items[i - 1].kind === 'sep' ? charPx : (items[i - 1] as Extract<RowItem, { kind: 'group' }>).chars * charPx);
-    return [...acc, prev];
-  }, []);
-
-  const hoveredItem  = hoveredIdx !== null ? items[hoveredIdx] : null;
-  const tooltipLabel = hoveredItem?.kind === 'group' ? hoveredItem.label : null;
-  const tooltipLeft  = hoveredIdx !== null ? offsets[hoveredIdx] : 0;
+  let tooltipLabel: string | null = null;
+  let tooltipLeft = 0;
+  if (hoveredKey) {
+    const [si, gi] = hoveredKey.split('-').map(Number);
+    tooltipLabel = SIDC_SETS[si]?.groups[gi]?.label ?? null;
+    tooltipLeft  = groupX[hoveredKey] ?? 0;
+  }
 
   return (
-    <View
-      style={{ paddingHorizontal: SIDC_PAD, paddingBottom: 12 }}
-    >
-
+    <View style={{ paddingHorizontal: SIDC_PAD, paddingBottom: 12 }}>
       {/* Set label row */}
       <View style={{ flexDirection: 'row', marginBottom: 4 }}>
-        {SIDC_SETS.map((set, si) => {
-          const w = (set.groups.reduce((s, g) => s + g.length, 0) + set.groups.length - 1) * charPx;
-          return (
-            <View key={set.label} style={{ flexDirection: 'row' }}>
-              {si > 0 && <View style={{ width: charPx }} />}
-              <View style={{ width: w }}>
-                <Text style={{ fontSize: setFs, fontWeight: '700', color: '#0a7ea4' }}>
-                  {set.label}
-                </Text>
-              </View>
+        {SIDC_SETS.map((set, si) => (
+          <Fragment key={set.label}>
+            {si > 0 && <View style={{ flex: 1 }} />}
+            <View style={{ flex: SET_FLEX[si] }}>
+              <Text style={{ fontSize: SET_FS, fontWeight: '700', color: '#0a7ea4' }}>
+                {set.label}
+              </Text>
             </View>
-          );
-        })}
+          </Fragment>
+        ))}
       </View>
 
       {/* Digit row — paddingTop reserves space for tooltip */}
-      <View style={{ position: 'relative', paddingTop: TOOLTIP_H }}>
-
+      <View style={{ position: 'relative', paddingTop: 30 }}>
         {tooltipLabel && (
           <View style={{
             position: 'absolute', top: 0, left: tooltipLeft,
             backgroundColor: '#1F2937', borderRadius: 4,
             paddingHorizontal: 8, paddingVertical: 4, zIndex: 100,
           }}>
-            <Text numberOfLines={1} style={{ color: '#fff', fontSize: 12 }}>
-              {tooltipLabel}
-            </Text>
+            <Text numberOfLines={1} style={{ color: '#fff', fontSize: 12 }}>{tooltipLabel}</Text>
           </View>
         )}
 
         <View style={{ flexDirection: 'row' }}>
-          {items.map((item, i) =>
-            item.kind === 'sep'
-              ? <View key={i} style={{ width: charPx }}>
-                  <Text numberOfLines={1} style={{ fontSize: digitFs, fontFamily: MONO, color: '#9CA3AF' }}>-</Text>
-                </View>
-              : <View
-                  key={i}
-                  style={{ width: item.chars * charPx }}
-                  {...(Platform.OS === 'web' ? {
-                    onMouseEnter: () => setHoveredIdx(i),
-                    onMouseLeave: () => setHoveredIdx(null),
-                    title: item.label,
-                  } : {}) as any}
+          {FLAT_ITEMS.map((item, i) =>
+            item.kind === 'sep' ? (
+              <View key={i} style={{ flex: 1, alignItems: 'center' }}>
+                <Text style={{ fontFamily: MONO, fontSize: DIGIT_FS, color: '#9CA3AF' }}>-</Text>
+              </View>
+            ) : (
+              <View
+                key={`${item.si}-${item.gi}`}
+                style={{ flex: item.flex }}
+                onLayout={e => {
+                  const x = e.nativeEvent.layout.x;
+                  setGroupX(prev => prev[`${item.si}-${item.gi}`] === x ? prev : { ...prev, [`${item.si}-${item.gi}`]: x });
+                }}
+                {...(Platform.OS === 'web' ? {
+                  onMouseEnter: () => setHoveredKey(`${item.si}-${item.gi}`),
+                  onMouseLeave: () => setHoveredKey(null),
+                } : {}) as any}
+              >
+                <Text
+                  numberOfLines={1}
+                  style={{
+                    fontFamily: MONO,
+                    fontSize: DIGIT_FS,
+                    color: hoveredKey === `${item.si}-${item.gi}` ? '#0a7ea4' : '#11181C',
+                  }}
                 >
-                  <Text numberOfLines={1} style={{
-                    fontSize: digitFs, fontFamily: MONO,
-                    color: hoveredIdx === i ? '#0a7ea4' : '#11181C',
-                  }}>
-                    {item.sidcSlice}
-                  </Text>
-                </View>
+                  {sidc.slice(item.start, item.start + item.length)}
+                </Text>
+              </View>
+            )
           )}
         </View>
-
       </View>
+    </View>
+  );
+}
+
+// ── QuestionLabel ─────────────────────────────────────────────────────────────
+
+function QuestionLabel({ label, onReset }: { label: string; onReset: () => void }) {
+  return (
+    <View style={styles.questionLabelRow}>
+      <Text style={styles.questionLabel}>{label}</Text>
+      <TouchableOpacity onPress={onReset} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <Text style={styles.questionResetIcon}>↺</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -388,6 +385,8 @@ export default function LookupScreen() {
   const [entity,        setEntity]        = useState<string | null>(null);
   const [entityType,    setEntityType]    = useState<string | null>(null);
   const [entitySubtype, setEntitySubtype] = useState<string | null>(null);
+  const [modifier1, setModifier1] = useState<string | null>(null);
+  const [modifier2, setModifier2] = useState<string | null>(null);
 
   function resetAll() {
     setExercise('--');
@@ -405,6 +404,8 @@ export default function LookupScreen() {
     setEchelon(null);
     setMobility(null);
     setMobilityEchelon('0');
+    setModifier1(null);
+    setModifier2(null);
   }
 
   function handleEntitySelect(v: string) {
@@ -446,8 +447,10 @@ export default function LookupScreen() {
     s = patchSIDC(s, 11, entity       ?? '00');
     s = patchSIDC(s, 13, entityType   ?? '00');
     s = patchSIDC(s, 15, entitySubtype ?? '00');
+    s = patchSIDC(s, 17, modifier1 ?? '00');
+    s = patchSIDC(s, 19, modifier2 ?? '00');
     return s;
-  }, [context, affiliation, symbolSet, status, hqtffd, levelMode, echelonGroup, echelon, mobility, mobilityEchelon, entity, entityType, entitySubtype]);
+  }, [context, affiliation, symbolSet, status, hqtffd, levelMode, echelonGroup, echelon, mobility, mobilityEchelon, entity, entityType, entitySubtype, modifier1, modifier2]);
 
   function handleDomainSelect(d: Domain) {
     setDomain(d);
@@ -455,8 +458,11 @@ export default function LookupScreen() {
     setEntity(null);
     setEntityType(null);
     setEntitySubtype(null);
+    setModifier1(null);
+    setModifier2(null);
   }
 
+  const symbolSetLabel = domain && symbolSet ? (SYMBOL_SETS[domain].find(o => o.value === symbolSet)?.label ?? symbolSet) : null;
   const entityData    = symbolSet !== null ? (ENTITY_OPTIONS[symbolSet] ?? null) : null;
   const entityDef     = entity !== null && entityData !== null ? (entityData.find(e => e.value === entity) ?? null) : null;
   const entityTypeDef = entityType !== null && entityDef !== null ? (entityDef.types.find(t => t.value === entityType) ?? null) : null;
@@ -465,7 +471,12 @@ export default function LookupScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <Text style={styles.heading}>Symbol Lookup</Text>
 
-      <SymbolPreview sidc={sidc} />
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
+        <SymbolPreview sidc={sidc} />
+        <TouchableOpacity onPress={resetAll} style={styles.resetButton} activeOpacity={0.6}>
+          <Text style={styles.resetIcon}>Reset ↺</Text>
+        </TouchableOpacity>
+      </View>
 
       <SIDCDisplay sidc={sidc} />
 
@@ -484,232 +495,263 @@ export default function LookupScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        <View style={styles.sectionHeadingRow}>
-          <Text style={styles.sectionHeading}>Guided Discovery</Text>
-          <TouchableOpacity onPress={resetAll} style={styles.resetButton} activeOpacity={0.6}>
-            <Text style={styles.resetIcon}>↺</Text>
-          </TouchableOpacity>
-        </View>
+        <Text style={[styles.sectionHeading, { marginBottom: 20 }]}>Guided Discovery</Text>
 
-        <Text style={styles.questionLabel}>Q1  What domain are you in?</Text>
-        <Dropdown
-          placeholder="Select a domain…"
-          options={DOMAINS.map(d => ({ value: d, label: d }))}
-          value={domain}
-          onSelect={v => handleDomainSelect(v as Domain)}
-          zIndex={20}
-        />
+        <View style={{ flexDirection: 'row', gap: 24 }}>
 
-        {domain && (
-          <>
-            <Text style={styles.questionLabel}>Q2  Most domains have subsets. Which one do you want to use?</Text>
+          {/* ── Left column: Q1–Q5 ── */}
+          <View style={{ flex: 1 }}>
+            <QuestionLabel label="Q1  What domain are you in?" onReset={() => { setDomain(null); setSymbolSet(null); setEntity(null); setEntityType(null); setEntitySubtype(null); setModifier1(null); setModifier2(null); }} />
             <Dropdown
-              placeholder="Select a sub-domain…"
-              options={SYMBOL_SETS[domain]}
-              value={symbolSet}
-              onSelect={setSymbolSet}
-              zIndex={10}
+              placeholder="Select a domain…"
+              options={DOMAINS.map(d => ({ value: d, label: d }))}
+              value={domain}
+              onSelect={v => handleDomainSelect(v as Domain)}
+              zIndex={20}
             />
-          </>
-        )}
 
-        {symbolSet !== null && (
-          <>
-            <Text style={styles.questionLabel}>Q3  What is the entity?</Text>
-            {entityData ? (
-              <Dropdown
-                placeholder="Select an entity…"
-                options={entityData.map(e => ({ value: e.value, label: e.label }))}
-                value={entity}
-                onSelect={handleEntitySelect}
-                zIndex={18}
-              />
-            ) : (
-              <View style={styles.placeholderDropdown}>
-                <Text style={styles.placeholderText}>Entity data not yet available for this symbol set</Text>
-              </View>
+            {domain && (
+              <>
+                <QuestionLabel label="Q2  Most domains have subsets. Which one do you want to use?" onReset={() => { setSymbolSet(domain ? SYMBOL_SETS[domain][0].value : null); setEntity(null); setEntityType(null); setEntitySubtype(null); setModifier1(null); setModifier2(null); }} />
+                <Dropdown
+                  placeholder="Select a sub-domain…"
+                  options={SYMBOL_SETS[domain]}
+                  value={symbolSet}
+                  onSelect={setSymbolSet}
+                  zIndex={10}
+                />
+              </>
             )}
 
-            {entityDef && entityDef.types.length > 0 && (
+            {symbolSet !== null && (
               <>
-                <Text style={styles.questionLabel}>Q4  What type of {entityDef.label}?</Text>
+                <QuestionLabel label={`Q3  What type of ${symbolSetLabel}?`} onReset={() => { setEntity(null); setEntityType(null); setEntitySubtype(null); }} />
+                {entityData ? (
+                  <Dropdown
+                    placeholder="Select an entity…"
+                    options={entityData.map(e => ({ value: e.value, label: e.label }))}
+                    value={entity}
+                    onSelect={handleEntitySelect}
+                    zIndex={18}
+                  />
+                ) : (
+                  <View style={styles.placeholderDropdown}>
+                    <Text style={styles.placeholderText}>Entity data not yet available for this symbol set</Text>
+                  </View>
+                )}
+
+                {entityDef && entityDef.types.length > 0 && (
+                  <>
+                    <QuestionLabel label={`Q4  What type of ${entityDef.label}?`} onReset={() => { setEntityType(null); setEntitySubtype(null); }} />
+                    <Dropdown
+                      placeholder="Select a type…"
+                      options={entityDef.types.map(t => ({ value: t.value, label: t.label }))}
+                      value={entityType}
+                      onSelect={handleEntityTypeSelect}
+                      zIndex={17}
+                    />
+
+                    {entityTypeDef && entityTypeDef.subtypes.length > 0 && (
+                      <>
+                        <QuestionLabel label="Q5  What subtype?" onReset={() => setEntitySubtype(null)} />
+                        <Dropdown
+                          placeholder="Select a subtype…"
+                          options={entityTypeDef.subtypes}
+                          value={entitySubtype}
+                          onSelect={setEntitySubtype}
+                          zIndex={16}
+                        />
+                      </>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+          </View>
+
+          {/* ── Right column: Q6+ ── */}
+          <View style={{ flex: 1 }}>
+            <QuestionLabel label="Q6  What is the affiliation?" onReset={() => setAffiliation('3')} />
+            <Dropdown
+              placeholder="Select an affiliation…"
+              options={[
+                { value: '0', label: 'Pending' },
+                { value: '1', label: 'Unknown' },
+                { value: '2', label: 'Assumed Friend' },
+                { value: '3', label: 'Friend' },
+                { value: '4', label: 'Neutral' },
+                { value: '5', label: 'Suspect/Joker' },
+                { value: '6', label: 'Hostile/Faker' },
+              ]}
+              value={affiliation}
+              onSelect={setAffiliation}
+              zIndex={5}
+            />
+
+            <QuestionLabel label="Q7  What is your status?" onReset={() => setStatus('0')} />
+            <Dropdown
+              placeholder="Select a status…"
+              options={[
+                { value: '0', label: 'Present' },
+                { value: '1', label: 'Planned/Anticipated/Suspect' },
+                { value: '2', label: 'Present/Fully Capable' },
+                { value: '3', label: 'Present/Damaged' },
+                { value: '4', label: 'Present/Destroyed' },
+                { value: '5', label: 'Present/Full to Capacity' },
+              ]}
+              value={status}
+              onSelect={setStatus}
+              zIndex={4}
+            />
+
+            <QuestionLabel label="Q8  Is this a headquarters, task force, feint, or dummy?" onReset={() => setHqtffd('0')} />
+            <Dropdown
+              placeholder="Select…"
+              options={[
+                { value: '0', label: 'Unknown' },
+                { value: '1', label: 'Feint/Decoy/Dummy' },
+                { value: '2', label: 'Headquarters' },
+                { value: '3', label: 'Feint/Dummy Headquarters' },
+                { value: '4', label: 'Task Force' },
+                { value: '5', label: 'Feint/Dummy Task Force' },
+                { value: '6', label: 'Task Force Headquarters' },
+                { value: '7', label: 'Feint/Dummy Task Force Headquarters' },
+              ]}
+              value={hqtffd}
+              onSelect={setHqtffd}
+              zIndex={3}
+            />
+
+            {symbolSet !== null && (MODIFIER1_OPTIONS[symbolSet]?.length ?? 0) > 0 && (
+              <>
+                <QuestionLabel label="Q9a  Sector 1 modifier?" onReset={() => setModifier1(null)} />
                 <Dropdown
-                  placeholder="Select a type…"
-                  options={entityDef.types.map(t => ({ value: t.value, label: t.label }))}
-                  value={entityType}
-                  onSelect={handleEntityTypeSelect}
-                  zIndex={17}
+                  placeholder="None"
+                  options={[{ value: '00', label: 'None' }, ...(MODIFIER1_OPTIONS[symbolSet] ?? [])]}
+                  value={modifier1 ?? '00'}
+                  onSelect={setModifier1}
+                  zIndex={4}
+                />
+              </>
+            )}
+
+            {symbolSet !== null && (MODIFIER2_OPTIONS[symbolSet]?.length ?? 0) > 0 && (
+              <>
+                <QuestionLabel label="Q9b  Sector 2 modifier?" onReset={() => setModifier2(null)} />
+                <Dropdown
+                  placeholder="None"
+                  options={[{ value: '00', label: 'None' }, ...(MODIFIER2_OPTIONS[symbolSet] ?? [])]}
+                  value={modifier2 ?? '00'}
+                  onSelect={setModifier2}
+                  zIndex={3}
+                />
+              </>
+            )}
+
+            <QuestionLabel label="Q10  Do you need to set a leadership level or define mobility status?" onReset={() => handleLevelModeSelect('0')} />
+            <Dropdown
+              placeholder="Select…"
+              options={[
+                { value: '0', label: 'No' },
+                { value: '1', label: "Yes, I'm stationary and need to set a leadership level" },
+                { value: '2', label: "Yes, I'm mobile equipment" },
+              ]}
+              value={levelMode}
+              onSelect={handleLevelModeSelect}
+              zIndex={3}
+            />
+
+            {levelMode === '1' && (
+              <>
+                <QuestionLabel label="Q11  What is your leadership level?" onReset={() => { setEchelonGroup('0'); setEchelon(null); }} />
+                <Dropdown
+                  placeholder="Select…"
+                  options={[
+                    { value: '0', label: 'Unknown' },
+                    { value: '1', label: 'Brigade and below' },
+                    { value: '2', label: 'Division and above' },
+                    { value: '7', label: 'Individual Leader' },
+                  ]}
+                  value={echelonGroup}
+                  onSelect={v => { setEchelonGroup(v); setEchelon(null); }}
+                  zIndex={2}
                 />
 
-                {entityTypeDef && entityTypeDef.subtypes.length > 0 && (
+                {echelonGroup !== '0' && (
                   <>
-                    <Text style={styles.questionLabel}>Q5  What subtype?</Text>
+                    <QuestionLabel label="Q12  Echelon Options" onReset={() => setEchelon(null)} />
                     <Dropdown
-                      placeholder="Select a subtype…"
-                      options={entityTypeDef.subtypes}
-                      value={entitySubtype}
-                      onSelect={setEntitySubtype}
-                      zIndex={16}
+                      placeholder="Select an echelon…"
+                      options={ECHELON_OPTIONS[echelonGroup] ?? []}
+                      value={echelon}
+                      onSelect={setEchelon}
+                      zIndex={1}
                     />
                   </>
                 )}
               </>
             )}
-          </>
-        )}
 
-        <Text style={styles.questionLabel}>Q6  What is the affiliation?</Text>
-        <Dropdown
-          placeholder="Select an affiliation…"
-          options={[
-            { value: '0', label: 'Pending' },
-            { value: '1', label: 'Unknown' },
-            { value: '2', label: 'Assumed Friend' },
-            { value: '3', label: 'Friend' },
-            { value: '4', label: 'Neutral' },
-            { value: '5', label: 'Suspect/Joker' },
-            { value: '6', label: 'Hostile/Faker' },
-          ]}
-          value={affiliation}
-          onSelect={setAffiliation}
-          zIndex={5}
-        />
-
-        <Text style={styles.questionLabel}>Q7  What is your status?</Text>
-        <Dropdown
-          placeholder="Select a status…"
-          options={[
-            { value: '0', label: 'Present' },
-            { value: '1', label: 'Planned/Anticipated/Suspect' },
-            { value: '2', label: 'Present/Fully Capable' },
-            { value: '3', label: 'Present/Damaged' },
-            { value: '4', label: 'Present/Destroyed' },
-            { value: '5', label: 'Present/Full to Capacity' },
-          ]}
-          value={status}
-          onSelect={setStatus}
-          zIndex={4}
-        />
-
-        <Text style={styles.questionLabel}>Q8  Is this a headquarters, task force, feint, or dummy?</Text>
-        <Dropdown
-          placeholder="Select…"
-          options={[
-            { value: '0', label: 'Unknown' },
-            { value: '1', label: 'Feint/Decoy/Dummy' },
-            { value: '2', label: 'Headquarters' },
-            { value: '3', label: 'Feint/Dummy Headquarters' },
-            { value: '4', label: 'Task Force' },
-            { value: '5', label: 'Feint/Dummy Task Force' },
-            { value: '6', label: 'Task Force Headquarters' },
-            { value: '7', label: 'Feint/Dummy Task Force Headquarters' },
-          ]}
-          value={hqtffd}
-          onSelect={setHqtffd}
-          zIndex={3}
-        />
-
-        <Text style={styles.questionLabel}>Q9  Do you need to set a leadership level or define mobility status?</Text>
-        <Dropdown
-          placeholder="Select…"
-          options={[
-            { value: '0', label: 'No' },
-            { value: '1', label: "Yes, I'm stationary and need to set a leadership level" },
-            { value: '2', label: "Yes, I'm mobile equipment" },
-          ]}
-          value={levelMode}
-          onSelect={handleLevelModeSelect}
-          zIndex={3}
-        />
-
-        {levelMode === '1' && (
-          <>
-            <Text style={styles.questionLabel}>Q10  What is your leadership level?</Text>
-            <Dropdown
-              placeholder="Select…"
-              options={[
-                { value: '0', label: 'Unknown' },
-                { value: '1', label: 'Brigade and below' },
-                { value: '2', label: 'Division and above' },
-                { value: '7', label: 'Individual Leader' },
-              ]}
-              value={echelonGroup}
-              onSelect={v => { setEchelonGroup(v); setEchelon(null); }}
-              zIndex={2}
-            />
-
-            {echelonGroup !== '0' && (
+            {levelMode === '2' && (
               <>
-                <Text style={styles.questionLabel}>Q11  Echelon Options</Text>
-                <Dropdown
-                  placeholder="Select an echelon…"
-                  options={ECHELON_OPTIONS[echelonGroup] ?? []}
-                  value={echelon}
-                  onSelect={setEchelon}
-                  zIndex={1}
-                />
-              </>
-            )}
-          </>
-        )}
-
-        {levelMode === '2' && (
-          <>
-            <Text style={styles.questionLabel}>Q12  What kind of mobile equipment?</Text>
-            <Dropdown
-              placeholder="Select…"
-              options={[
-                { value: '3', label: 'Mobile equipment on land' },
-                { value: '4', label: 'Mobile equipment on snow' },
-                { value: '5', label: 'Mobile equipment on water' },
-                { value: '6', label: 'Naval towed array' },
-              ]}
-              value={mobility}
-              onSelect={handleMobilitySelect}
-              zIndex={2}
-            />
-
-            {mobility !== null && (
-              <>
-                <Text style={styles.questionLabel}>Q13  Which type?</Text>
+                <QuestionLabel label="Q13  What kind of mobile equipment?" onReset={() => { setMobility(null); setMobilityEchelon('0'); }} />
                 <Dropdown
                   placeholder="Select…"
-                  options={MOBILITY_SUB_OPTIONS[mobility] ?? []}
-                  value={mobilityEchelon}
-                  onSelect={setMobilityEchelon}
-                  zIndex={1}
+                  options={[
+                    { value: '3', label: 'Mobile equipment on land' },
+                    { value: '4', label: 'Mobile equipment on snow' },
+                    { value: '5', label: 'Mobile equipment on water' },
+                    { value: '6', label: 'Naval towed array' },
+                  ]}
+                  value={mobility}
+                  onSelect={handleMobilitySelect}
+                  zIndex={2}
+                />
+
+                {mobility !== null && (
+                  <>
+                    <QuestionLabel label="Q14  Which type?" onReset={() => setMobilityEchelon('0')} />
+                    <Dropdown
+                      placeholder="Select…"
+                      options={MOBILITY_SUB_OPTIONS[mobility] ?? []}
+                      value={mobilityEchelon}
+                      onSelect={setMobilityEchelon}
+                      zIndex={1}
+                    />
+                  </>
+                )}
+              </>
+            )}
+
+            <QuestionLabel label="Q15  Are you planning an exercise or simulation?" onReset={() => { setExercise('--'); setContext(null); }} />
+            <Dropdown
+              placeholder="Select…"
+              options={[
+                { value: '--',         label: '--' },
+                { value: 'real',       label: 'Nope, real life' },
+                { value: 'exercise',   label: 'Yes, exercise' },
+                { value: 'simulation', label: 'Yes, simulation' },
+              ]}
+              value={exercise}
+              onSelect={handleExerciseSelect}
+              zIndex={4}
+            />
+
+            {exercise !== '--' && (
+              <>
+                <QuestionLabel label="Q16  Is this a restricted target or no-strike entity?" onReset={() => setContext(null)} />
+                <Dropdown
+                  placeholder="Select a context…"
+                  options={CONTEXT_OPTIONS[exercise]}
+                  value={context}
+                  onSelect={setContext}
+                  zIndex={3}
                 />
               </>
             )}
-          </>
-        )}
+          </View>
 
-        <Text style={styles.questionLabel}>Q14  Are you planning an exercise or simulation?</Text>
-        <Dropdown
-          placeholder="Select…"
-          options={[
-            { value: '--',         label: '--' },
-            { value: 'real',       label: 'Nope, real life' },
-            { value: 'exercise',   label: 'Yes, exercise' },
-            { value: 'simulation', label: 'Yes, simulation' },
-          ]}
-          value={exercise}
-          onSelect={handleExerciseSelect}
-          zIndex={4}
-        />
-
-        {exercise !== '--' && (
-          <>
-            <Text style={styles.questionLabel}>Q15  Is this a restricted target or no-strike entity?</Text>
-            <Dropdown
-              placeholder="Select a context…"
-              options={CONTEXT_OPTIONS[exercise]}
-              value={context}
-              onSelect={setContext}
-              zIndex={3}
-            />
-          </>
-        )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -746,16 +788,23 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#11181C',
   },
-  resetButton: { padding: 4, marginLeft: 20 },
-  resetIcon: { fontSize: 22, color: '#0a7ea4', lineHeight: 26 },
+  resetButton: { padding: 8, marginLeft: 20 },
+  resetIcon: { fontSize: 22, color: '#0a7ea4' },
+  questionLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
   questionLabel: {
     fontSize: 14,
     fontWeight: '600',
     color: '#687076',
-    marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
+    flex: 1,
   },
+  questionResetIcon: { fontSize: 16, color: '#9CA3AF' },
   dropdownWrapper: { marginBottom: 16 },
   dropdownButton: {
     flexDirection: 'row',

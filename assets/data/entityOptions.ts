@@ -25,11 +25,11 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
         ]},
         { value: '07', label: 'Radio', subtypes: [] },
         { value: '08', label: 'Radio Relay', subtypes: [] },
-        { value: '09', label: 'Radio Teletype Centre', subtypes: [] },
+        { value: '09', label: 'Radio Teletype Center', subtypes: [] },
         { value: '10', label: 'Signal', subtypes: [
           { value: '01', label: 'with Radio' },
           { value: '02', label: 'with Radio Relay' },
-          { value: '03', label: 'with Radio Teletype Centre' },
+          { value: '03', label: 'with Radio Teletype Center' },
           { value: '04', label: 'with Satellite' },
           { value: '05', label: 'with Video Imagery' },
         ]},
@@ -45,11 +45,11 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
         { value: '01', label: 'Air Assault with Organic Lift', subtypes: [] },
         { value: '02', label: 'Air Traffic Services', subtypes: [] },
         { value: '03', label: 'Amphibious', subtypes: [] },
-        { value: '04', label: 'Anti-Tank/Anti-Armour', subtypes: [
-          { value: '01', label: 'Armoured' },
+        { value: '04', label: 'Anti-Tank/Anti-Armor', subtypes: [
+          { value: '01', label: 'Armored' },
           { value: '02', label: 'Motorized' },
         ]},
-        { value: '05', label: 'Armour', subtypes: [
+        { value: '05', label: 'Armor', subtypes: [
           { value: '01', label: 'Reconnaissance' },
           { value: '02', label: 'Amphibious' },
         ]},
@@ -64,10 +64,10 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
         { value: '10', label: 'Combined Arms', subtypes: [] },
         { value: '11', label: 'Infantry', subtypes: [
           { value: '01', label: 'Amphibious' },
-          { value: '02', label: 'Armoured' },
+          { value: '02', label: 'Armored' },
           { value: '03', label: 'with Main Gun System' },
           { value: '04', label: 'Motorized' },
-          { value: '05', label: 'Armoured with Main Gun System' },
+          { value: '05', label: 'Armored with Main Gun System' },
           { value: '06', label: 'Main Gun System Only' },
         ]},
         { value: '12', label: 'Observer/Observation', subtypes: [] },
@@ -93,15 +93,15 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
     },
     {
       value: '13', label: 'Fires', types: [
-        { value: '01', label: 'Air Defence', subtypes: [
+        { value: '01', label: 'Air Defense', subtypes: [
           { value: '01', label: 'with Main Gun System' },
           { value: '02', label: 'with Missile' },
           { value: '03', label: 'Air and Missile Defense' },
         ]},
         { value: '02', label: 'Field Artillery (Naval/Rotary Recon)', subtypes: [] },
         { value: '03', label: 'Field Artillery', subtypes: [
-          { value: '01', label: 'Armoured' },
-          { value: '02', label: 'Armoured Reconnaissance' },
+          { value: '01', label: 'Armored' },
+          { value: '02', label: 'Armored Reconnaissance' },
           { value: '03', label: 'Reconnaissance' },
         ]},
         { value: '04', label: 'Field Artillery Observer', subtypes: [] },
@@ -119,14 +119,14 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
     {
       value: '14', label: 'Combat Support', types: [
         { value: '01', label: 'CBRN', subtypes: [
-          { value: '01', label: 'Armoured' },
+          { value: '01', label: 'Armored' },
           { value: '02', label: 'Motorized' },
           { value: '03', label: 'Reconnaissance' },
-          { value: '04', label: 'Armoured Reconnaissance' },
+          { value: '04', label: 'Armored Reconnaissance' },
           { value: '05', label: 'Motorized Reconnaissance' },
           { value: '06', label: 'CBRNE' },
         ]},
-        { value: '02', label: 'Combat Support (Manoeuvre Enhancement)', subtypes: [] },
+        { value: '02', label: 'Combat Support (Maneuver Enhancement)', subtypes: [] },
         { value: '03', label: 'Criminal Investigation Division', subtypes: [] },
         { value: '04', label: 'Diver, Civilian', subtypes: [] },
         { value: '05', label: 'Dog', subtypes: [] },
@@ -146,7 +146,7 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
         { value: '15', label: 'Mine Launching', subtypes: [] },
         { value: '16', label: 'Mine Laying', subtypes: [] },
         { value: '17', label: 'Security', subtypes: [
-          { value: '01', label: 'Armoured' },
+          { value: '01', label: 'Armored' },
           { value: '02', label: 'Motorized' },
         ]},
         { value: '18', label: 'Search and Rescue', subtypes: [
@@ -174,7 +174,7 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
         { value: '06', label: 'Intercept', subtypes: [] },
         { value: '07', label: 'Interrogation', subtypes: [] },
         { value: '08', label: 'Jamming', subtypes: [] },
-        { value: '09', label: 'Joint Intelligence Centre', subtypes: [] },
+        { value: '09', label: 'Joint Intelligence Center', subtypes: [] },
         { value: '10', label: 'Military Intelligence', subtypes: [] },
         { value: '11', label: 'Search', subtypes: [] },
         { value: '12', label: 'Sensor', subtypes: [] },
@@ -193,7 +193,7 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
         { value: '06', label: 'Combat Service Support', subtypes: [] },
         { value: '07', label: 'Finance', subtypes: [] },
         { value: '08', label: 'Judge Advocate General', subtypes: [] },
-        { value: '09', label: 'Labour', subtypes: [] },
+        { value: '09', label: 'Labor', subtypes: [] },
         { value: '10', label: 'Laundry/Bath', subtypes: [] },
         { value: '11', label: 'Maintenance', subtypes: [] },
         { value: '12', label: 'Supply (Materiel)', subtypes: [] },
@@ -312,7 +312,7 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
           { value: '27', label: 'Ultra Light' },
           { value: '28', label: 'Photographic Reconnaissance' },
           { value: '29', label: 'VIP' },
-          { value: '30', label: 'Suppression of Enemy Air Defence' },
+          { value: '30', label: 'Suppression of Enemy Air Defense' },
           { value: '31', label: 'Passenger' },
           { value: '32', label: 'Escort' },
           { value: '33', label: 'Electronic Attack' },
@@ -365,7 +365,7 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
           { value: '03', label: 'Long Range' },
         ]},
         { value: '04', label: 'Flame Thrower', subtypes: [] },
-        { value: '05', label: 'Air Defence Gun', subtypes: [
+        { value: '05', label: 'Air Defense Gun', subtypes: [
           { value: '01', label: 'Short Range' },
           { value: '02', label: 'Intermediate Range' },
           { value: '03', label: 'Long Range' },
@@ -395,7 +395,7 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
           { value: '02', label: 'Intermediate Range' },
           { value: '03', label: 'Long Range' },
         ]},
-        { value: '11', label: 'Air Defence Missile Launcher (SAM)', subtypes: [
+        { value: '11', label: 'Air Defense Missile Launcher (SAM)', subtypes: [
           { value: '01', label: 'Short Range' },
           { value: '02', label: 'Short Range TLAR' },
           { value: '03', label: 'Short Range TELAR' },
@@ -442,11 +442,11 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
       ],
     },
     {
-      value: '12', label: 'Armoured Vehicle', types: [
-        { value: '01', label: 'Armoured/Protected Vehicle', subtypes: [
-          { value: '01', label: 'Armoured Fighting Vehicle' },
+      value: '12', label: 'Armored Vehicle', types: [
+        { value: '01', label: 'Armored/Protected Vehicle', subtypes: [
+          { value: '01', label: 'Armored Fighting Vehicle' },
           { value: '02', label: 'AFV Command and Control' },
-          { value: '03', label: 'Armoured Personnel Carrier' },
+          { value: '03', label: 'Armored Personnel Carrier' },
           { value: '04', label: 'APC Medical Evacuation' },
           { value: '05', label: 'Tank' },
           { value: '06', label: 'Tank Recovery Vehicle' },
@@ -495,7 +495,7 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
           { value: '03', label: 'Utility Vehicle with Volcano' },
         ]},
         { value: '11', label: 'Dozer', subtypes: [
-          { value: '01', label: 'Armoured' },
+          { value: '01', label: 'Armored' },
         ]},
         { value: '12', label: 'Engineer APC', subtypes: [] },
         { value: '13', label: 'Engineer APC Reconnaissance', subtypes: [] },

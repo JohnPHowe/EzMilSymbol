@@ -21,7 +21,7 @@ import { SvgXml } from 'react-native-svg';
 type Domain = 'Air' | 'Land' | 'Space' | 'Surface' | 'Subsurface';
 type Option = { label: string; value: string };
 
-const DOMAINS: Domain[] = ['Air', 'Land', 'Space', 'Surface', 'Subsurface'];
+const DOMAINS: Domain[] = ['Air', 'Land', 'Space', 'Subsurface', 'Surface'];
 
 const DOMAIN_ICONS: Record<Domain, ComponentProps<typeof FontAwesome6>['name']> = {
   Air: 'wind',
@@ -443,6 +443,7 @@ function EntityTypeGrid({
 
   // Once a type with subtypes is selected, narrow the grid to that type's subtypes (Q5).
   if (selectedEntity && selectedType && selectedTypeDef && selectedTypeDef.subtypes.length > 0) {
+    const sortedSubtypes = [...selectedTypeDef.subtypes].sort((a, b) => a.label.localeCompare(b.label));
     return (
       <View>
         <View style={styles.gridSection}>
@@ -454,7 +455,7 @@ function EntityTypeGrid({
               selected={selectedSubtype === null}
               onPress={() => onSelectSubtype('00')}
             />
-            {selectedTypeDef.subtypes.map(subtype => {
+            {sortedSubtypes.map(subtype => {
               const isSelected = selectedSubtype === subtype.value;
               return (
                 <EntityTypeTile
@@ -472,36 +473,41 @@ function EntityTypeGrid({
     );
   }
 
+  const sortedEntityData = [...entityData].sort((a, b) => a.label.localeCompare(b.label));
+
   return (
     <View>
-      {entityData.map(category => (
-        <View key={category.value} style={styles.gridSection}>
-          <Text style={styles.gridCategoryHeading}>{category.label}</Text>
-          <View style={styles.gridRow}>
-            {category.types.length === 0 ? (
-              <EntityTypeTile
-                label={category.label}
-                sidc={selectedEntity === category.value ? currentSidc : tileSidc(category.value, '00')}
-                selected={selectedEntity === category.value}
-                onPress={() => onSelect(category.value, '00')}
-              />
-            ) : (
-              category.types.map(type => {
-                const isSelected = selectedEntity === category.value && selectedType === type.value;
-                return (
-                  <EntityTypeTile
-                    key={type.value}
-                    label={type.label}
-                    sidc={isSelected ? currentSidc : tileSidc(category.value, type.value)}
-                    selected={isSelected}
-                    onPress={() => onSelect(category.value, type.value)}
-                  />
-                );
-              })
-            )}
+      {sortedEntityData.map(category => {
+        const sortedTypes = [...category.types].sort((a, b) => a.label.localeCompare(b.label));
+        return (
+          <View key={category.value} style={styles.gridSection}>
+            <Text style={styles.gridCategoryHeading}>{category.label}</Text>
+            <View style={styles.gridRow}>
+              {sortedTypes.length === 0 ? (
+                <EntityTypeTile
+                  label={category.label}
+                  sidc={selectedEntity === category.value ? currentSidc : tileSidc(category.value, '00')}
+                  selected={selectedEntity === category.value}
+                  onPress={() => onSelect(category.value, '00')}
+                />
+              ) : (
+                sortedTypes.map(type => {
+                  const isSelected = selectedEntity === category.value && selectedType === type.value;
+                  return (
+                    <EntityTypeTile
+                      key={type.value}
+                      label={type.label}
+                      sidc={isSelected ? currentSidc : tileSidc(category.value, type.value)}
+                      selected={isSelected}
+                      onPress={() => onSelect(category.value, type.value)}
+                    />
+                  );
+                })
+              )}
+            </View>
           </View>
-        </View>
-      ))}
+        );
+      })}
     </View>
   );
 }
@@ -668,6 +674,13 @@ const MOBILITY_SUB_OPTIONS: Record<string, Option[]> = {
     { value: '2', label: 'Long towed array' },
   ],
 };
+
+const MOBILITY_TYPE_OPTIONS: { value: string; label: string; icon: ComponentProps<typeof FontAwesome6>['name'] }[] = [
+  { value: '3', label: 'Mobile on land', icon: 'mountain' },
+  { value: '4', label: 'Mobile on snow', icon: 'snowflake' },
+  { value: '5', label: 'Mobile on water', icon: 'water' },
+  { value: '6', label: 'Naval towed array', icon: 'ship' },
+];
 
 const CONTEXT_OPTIONS: Record<string, Option[]> = {
   real: [
@@ -1072,7 +1085,7 @@ export default function LookupScreen() {
           {domain && symbolSet === null && (
             <View style={styles.gridSection}>
               <View style={styles.gridRow}>
-                {SYMBOL_SETS[domain].map(opt => (
+                {[...SYMBOL_SETS[domain]].sort((a, b) => a.label.localeCompare(b.label)).map(opt => (
                   <EntityTypeTile
                     key={opt.value}
                     label={opt.label}
@@ -1112,26 +1125,77 @@ export default function LookupScreen() {
 
         <View style={styles.gridWrapper}>
           <Text style={[styles.sectionHeading, { marginBottom: 16 }]}>Other Modifiers</Text>
+
+          <View style={{ marginBottom: 24 }}>
+            <View style={styles.breadcrumbRow}>
+              <TouchableOpacity
+                onPress={() => { setMobility(null); setMobilityEchelon('0'); }}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered]}>Mobility</Text>
+              </TouchableOpacity>
+              {mobility !== null && (
+                <>
+                  <Text style={styles.breadcrumbSep}>›</Text>
+                  <TouchableOpacity onPress={() => setMobilityEchelon('0')} activeOpacity={0.7}>
+                    <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, styles.breadcrumbItemActive]}>
+                      {MOBILITY_TYPE_OPTIONS.find(o => o.value === mobility)?.label}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
+              {mobility !== null && (MOBILITY_SUB_OPTIONS[mobility]?.length ?? 0) > 0 && (
+                <>
+                  <Text style={styles.breadcrumbSep}>›</Text>
+                  <TouchableOpacity onPress={() => setMobilityEchelon('0')} activeOpacity={0.7}>
+                    <Text style={[
+                      styles.breadcrumbItem,
+                      mobilityEchelon !== '0' && styles.breadcrumbItemAnswered,
+                      mobilityEchelon === '0' && styles.breadcrumbItemActive,
+                    ]}>
+                      {MOBILITY_SUB_OPTIONS[mobility]?.find(o => o.value === mobilityEchelon)?.label ?? 'Type'}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+
+            {mobility === null && (
+              <View style={styles.gridSection}>
+                <View style={styles.gridRow}>
+                  {MOBILITY_TYPE_OPTIONS.map(opt => (
+                    <DomainTile
+                      key={opt.value}
+                      label={opt.label}
+                      icon={opt.icon}
+                      selected={mobility === opt.value}
+                      onPress={() => { setLevelMode('2'); handleMobilitySelect(opt.value); }}
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {mobility !== null && (MOBILITY_SUB_OPTIONS[mobility]?.length ?? 0) > 0 && (
+              <View style={styles.gridSection}>
+                <View style={styles.gridRow}>
+                  {(MOBILITY_SUB_OPTIONS[mobility] ?? []).map(opt => (
+                    <EntityTypeTile
+                      key={opt.value}
+                      label={opt.label}
+                      sidc={patchSIDC(patchSIDC(sidc, 9, mobility), 10, opt.value)}
+                      selected={mobilityEchelon === opt.value}
+                      onPress={() => setMobilityEchelon(opt.value)}
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+
           <View style={{ flexDirection: 'row', gap: 24 }}>
           <View style={{ flex: 1 }}>
-          <QuestionLabel label="Q6  What is the affiliation?" onReset={() => setAffiliation('3')} />
-          <Dropdown
-            placeholder="Select an affiliation…"
-            options={[
-              { value: '0', label: 'Pending' },
-              { value: '1', label: 'Unknown' },
-              { value: '2', label: 'Assumed Friend' },
-              { value: '3', label: 'Friend' },
-              { value: '4', label: 'Neutral' },
-              { value: '5', label: 'Suspect/Joker' },
-              { value: '6', label: 'Hostile/Faker' },
-            ]}
-            value={affiliation}
-            onSelect={setAffiliation}
-            zIndex={5}
-          />
-
-          <QuestionLabel label="Q7  What is your status?" onReset={() => setStatus('0')} />
+          <QuestionLabel label="Q6  What is your status?" onReset={() => setStatus('0')} />
           <Dropdown
             placeholder="Select a status…"
             options={[
@@ -1147,7 +1211,7 @@ export default function LookupScreen() {
             zIndex={4}
           />
 
-          <QuestionLabel label="Q8  Is this a headquarters, task force, feint, or dummy?" onReset={() => setHqtffd('0')} />
+          <QuestionLabel label="Q7  Is this a headquarters, task force, feint, or dummy?" onReset={() => setHqtffd('0')} />
           <Dropdown
             placeholder="Select…"
             options={[
@@ -1165,13 +1229,12 @@ export default function LookupScreen() {
             zIndex={3}
           />
 
-          <QuestionLabel label="Q11  Do you need to set a leadership level or define mobility status?" onReset={() => handleLevelModeSelect('0')} />
+          <QuestionLabel label="Q10  Do you need to set a leadership level or define mobility status?" onReset={() => handleLevelModeSelect('0')} />
           <Dropdown
             placeholder="Select…"
             options={[
               { value: '0', label: 'No' },
               { value: '1', label: "Yes, I'm stationary and need to set a leadership level" },
-              { value: '2', label: "Yes, I'm mobile equipment" },
             ]}
             value={levelMode}
             onSelect={handleLevelModeSelect}
@@ -1180,7 +1243,7 @@ export default function LookupScreen() {
 
           {levelMode === '1' && (
             <>
-              <QuestionLabel label="Q12  What is your leadership level?" onReset={() => { setEchelonGroup('0'); setEchelon(null); }} />
+              <QuestionLabel label="Q11  What is your leadership level?" onReset={() => { setEchelonGroup('0'); setEchelon(null); }} />
               <Dropdown
                 placeholder="Select…"
                 options={[
@@ -1196,7 +1259,7 @@ export default function LookupScreen() {
 
               {echelonGroup !== '0' && (
                 <>
-                  <QuestionLabel label="Q13  Echelon Options" onReset={() => setEchelon(null)} />
+                  <QuestionLabel label="Q12  Echelon Options" onReset={() => setEchelon(null)} />
                   <Dropdown
                     placeholder="Select an echelon…"
                     options={ECHELON_OPTIONS[echelonGroup] ?? []}
@@ -1209,38 +1272,7 @@ export default function LookupScreen() {
             </>
           )}
 
-          {levelMode === '2' && (
-            <>
-              <QuestionLabel label="Q14  What kind of mobile equipment?" onReset={() => { setMobility(null); setMobilityEchelon('0'); }} />
-              <Dropdown
-                placeholder="Select…"
-                options={[
-                  { value: '3', label: 'Mobile equipment on land' },
-                  { value: '4', label: 'Mobile equipment on snow' },
-                  { value: '5', label: 'Mobile equipment on water' },
-                  { value: '6', label: 'Naval towed array' },
-                ]}
-                value={mobility}
-                onSelect={handleMobilitySelect}
-                zIndex={2}
-              />
-
-              {mobility !== null && (
-                <>
-                  <QuestionLabel label="Q15  Which type?" onReset={() => setMobilityEchelon('0')} />
-                  <Dropdown
-                    placeholder="Select…"
-                    options={MOBILITY_SUB_OPTIONS[mobility] ?? []}
-                    value={mobilityEchelon}
-                    onSelect={setMobilityEchelon}
-                    zIndex={1}
-                  />
-                </>
-              )}
-            </>
-          )}
-
-          <QuestionLabel label="Q16  Are you planning an exercise or simulation?" onReset={() => { setExercise('--'); setContext(null); }} />
+          <QuestionLabel label="Q13  Are you planning an exercise or simulation?" onReset={() => { setExercise('--'); setContext(null); }} />
           <Dropdown
             placeholder="Select…"
             options={[
@@ -1256,7 +1288,7 @@ export default function LookupScreen() {
 
           {exercise !== '--' && (
             <>
-              <QuestionLabel label="Q17  Is this a restricted target or no-strike entity?" onReset={() => setContext(null)} />
+              <QuestionLabel label="Q14  Is this a restricted target or no-strike entity?" onReset={() => setContext(null)} />
               <Dropdown
                 placeholder="Select a context…"
                 options={CONTEXT_OPTIONS[exercise]}
@@ -1271,7 +1303,7 @@ export default function LookupScreen() {
           <View style={{ flex: 1 }}>
             {symbolSet !== null && (MODIFIER1_OPTIONS[symbolSet]?.length ?? 0) > 0 && (
               <>
-                <QuestionLabel label="Q9  Sector 1 modifier?" onReset={() => setModifier1(null)} />
+                <QuestionLabel label="Q8  Sector 1 modifier?" onReset={() => setModifier1(null)} />
                 <Dropdown
                   placeholder="None"
                   options={[{ value: '00', label: 'None' }, ...(MODIFIER1_OPTIONS[symbolSet] ?? [])]}
@@ -1284,7 +1316,7 @@ export default function LookupScreen() {
 
             {symbolSet !== null && (MODIFIER2_OPTIONS[symbolSet]?.length ?? 0) > 0 && (
               <>
-                <QuestionLabel label="Q10  Sector 2 modifier?" onReset={() => setModifier2(null)} />
+                <QuestionLabel label="Q9  Sector 2 modifier?" onReset={() => setModifier2(null)} />
                 <Dropdown
                   placeholder="None"
                   options={[{ value: '00', label: 'None' }, ...(MODIFIER2_OPTIONS[symbolSet] ?? [])]}

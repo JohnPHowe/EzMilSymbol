@@ -697,6 +697,26 @@ const DIVISION_XX_SVG = `
   </g>
 </svg>`;
 
+const STATUS_OPTIONS: Option[] = [
+  { value: '0', label: 'Present' },
+  { value: '1', label: 'Planned/Anticipated/Suspect' },
+  { value: '2', label: 'Present/Fully Capable' },
+  { value: '3', label: 'Present/Damaged' },
+  { value: '4', label: 'Present/Destroyed' },
+  { value: '5', label: 'Present/Full to Capacity' },
+];
+
+const HQTFFD_OPTIONS: Option[] = [
+  { value: '0', label: 'Unknown' },
+  { value: '1', label: 'Feint/Decoy/Dummy' },
+  { value: '2', label: 'Headquarters' },
+  { value: '3', label: 'Feint/Dummy Headquarters' },
+  { value: '4', label: 'Task Force' },
+  { value: '5', label: 'Feint/Dummy Task Force' },
+  { value: '6', label: 'Task Force Headquarters' },
+  { value: '7', label: 'Feint/Dummy Task Force Headquarters' },
+];
+
 const MOBILITY_TYPE_OPTIONS: { value: string; label: string; icon: ComponentProps<typeof FontAwesome6>['name'] }[] = [
   { value: '3', label: 'Mobile on land', icon: 'mountain' },
   { value: '4', label: 'Mobile on snow', icon: 'snowflake' },
@@ -1256,41 +1276,72 @@ export default function LookupScreen() {
             )}
           </View>
 
-          <View style={{ flexDirection: 'row', gap: 24 }}>
-          <View style={{ flex: 1 }}>
-          <QuestionLabel label="Q6  What is your status?" onReset={() => setStatus('0')} />
-          <Dropdown
-            placeholder="Select a status…"
-            options={[
-              { value: '0', label: 'Present' },
-              { value: '1', label: 'Planned/Anticipated/Suspect' },
-              { value: '2', label: 'Present/Fully Capable' },
-              { value: '3', label: 'Present/Damaged' },
-              { value: '4', label: 'Present/Destroyed' },
-              { value: '5', label: 'Present/Full to Capacity' },
-            ]}
-            value={status}
-            onSelect={setStatus}
-            zIndex={4}
-          />
+          <View style={styles.gridSection}>
+            <Text style={styles.gridCategoryHeading}>Status</Text>
+            <View style={styles.gridRow}>
+              {STATUS_OPTIONS.map(opt => (
+                <EntityTypeTile
+                  key={opt.value}
+                  label={opt.label}
+                  sidc={patchSIDC(sidc, 7, opt.value)}
+                  selected={status === opt.value}
+                  onPress={() => setStatus(opt.value)}
+                />
+              ))}
+            </View>
+          </View>
 
-          <QuestionLabel label="Q7  Is this a headquarters, task force, feint, or dummy?" onReset={() => setHqtffd('0')} />
-          <Dropdown
-            placeholder="Select…"
-            options={[
-              { value: '0', label: 'Unknown' },
-              { value: '1', label: 'Feint/Decoy/Dummy' },
-              { value: '2', label: 'Headquarters' },
-              { value: '3', label: 'Feint/Dummy Headquarters' },
-              { value: '4', label: 'Task Force' },
-              { value: '5', label: 'Feint/Dummy Task Force' },
-              { value: '6', label: 'Task Force Headquarters' },
-              { value: '7', label: 'Feint/Dummy Task Force Headquarters' },
-            ]}
-            value={hqtffd}
-            onSelect={setHqtffd}
-            zIndex={3}
-          />
+          {symbolSet !== null && (MODIFIER1_OPTIONS[symbolSet]?.length ?? 0) > 0 && (
+            <View style={styles.gridSection}>
+              <Text style={styles.gridCategoryHeading}>Sector 1 Modifier</Text>
+              <View style={styles.gridRow}>
+                {[{ value: '00', label: 'None' }, ...[...(MODIFIER1_OPTIONS[symbolSet] ?? [])].sort((a, b) => a.label.localeCompare(b.label))].map(opt => (
+                  <EntityTypeTile
+                    key={opt.value}
+                    label={opt.label}
+                    sidc={patchSIDC(sidc, 17, opt.value)}
+                    selected={(modifier1 ?? '00') === opt.value}
+                    onPress={() => setModifier1(opt.value)}
+                  />
+                ))}
+              </View>
+            </View>
+          )}
+
+          {symbolSet !== null && (MODIFIER2_OPTIONS[symbolSet]?.length ?? 0) > 0 && (
+            <View style={styles.gridSection}>
+              <Text style={styles.gridCategoryHeading}>Sector 2 Modifier</Text>
+              <View style={styles.gridRow}>
+                {[{ value: '00', label: 'None' }, ...[...(MODIFIER2_OPTIONS[symbolSet] ?? [])].sort((a, b) => a.label.localeCompare(b.label))].map(opt => (
+                  <EntityTypeTile
+                    key={opt.value}
+                    label={opt.label}
+                    sidc={patchSIDC(sidc, 19, opt.value)}
+                    selected={(modifier2 ?? '00') === opt.value}
+                    onPress={() => setModifier2(opt.value)}
+                  />
+                ))}
+              </View>
+            </View>
+          )}
+
+          <View style={styles.gridSection}>
+            <Text style={styles.gridCategoryHeading}>Headquarters / Task Force / Feint / Dummy</Text>
+            <View style={styles.gridRow}>
+              {[
+                HQTFFD_OPTIONS[0],
+                ...HQTFFD_OPTIONS.slice(1).sort((a, b) => a.label.localeCompare(b.label)),
+              ].map(opt => (
+                <EntityTypeTile
+                  key={opt.value}
+                  label={opt.label}
+                  sidc={patchSIDC(sidc, 8, opt.value)}
+                  selected={hqtffd === opt.value}
+                  onPress={() => setHqtffd(opt.value)}
+                />
+              ))}
+            </View>
+          </View>
 
           <QuestionLabel label="Q10  Are you planning an exercise or simulation?" onReset={() => { setExercise('--'); setContext(null); }} />
           <Dropdown
@@ -1318,36 +1369,6 @@ export default function LookupScreen() {
               />
             </>
           )}
-          </View>
-
-          <View style={{ flex: 1 }}>
-            {symbolSet !== null && (MODIFIER1_OPTIONS[symbolSet]?.length ?? 0) > 0 && (
-              <>
-                <QuestionLabel label="Q8  Sector 1 modifier?" onReset={() => setModifier1(null)} />
-                <Dropdown
-                  placeholder="None"
-                  options={[{ value: '00', label: 'None' }, ...(MODIFIER1_OPTIONS[symbolSet] ?? [])]}
-                  value={modifier1 ?? '00'}
-                  onSelect={setModifier1}
-                  zIndex={4}
-                />
-              </>
-            )}
-
-            {symbolSet !== null && (MODIFIER2_OPTIONS[symbolSet]?.length ?? 0) > 0 && (
-              <>
-                <QuestionLabel label="Q9  Sector 2 modifier?" onReset={() => setModifier2(null)} />
-                <Dropdown
-                  placeholder="None"
-                  options={[{ value: '00', label: 'None' }, ...(MODIFIER2_OPTIONS[symbolSet] ?? [])]}
-                  value={modifier2 ?? '00'}
-                  onSelect={setModifier2}
-                  zIndex={3}
-                />
-              </>
-            )}
-          </View>
-          </View>
         </View>
 
         <SIDCDisplay sidc={sidc} />

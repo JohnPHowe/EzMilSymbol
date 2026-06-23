@@ -356,11 +356,13 @@ function SIDCDisplay({ sidc }: { sidc: string }) {
 function DomainTile({
   label,
   icon,
+  svg,
   selected,
   onPress,
 }: {
   label: string;
-  icon: ComponentProps<typeof FontAwesome6>['name'];
+  icon?: ComponentProps<typeof FontAwesome6>['name'];
+  svg?: string;
   selected: boolean;
   onPress: () => void;
 }) {
@@ -371,7 +373,11 @@ function DomainTile({
       activeOpacity={0.7}
     >
       <View style={styles.tileIconWrap}>
-        <FontAwesome6 name={icon} size={28} color="#687076" />
+        {svg ? (
+          <SvgXml xml={svg} width={32} height={20} />
+        ) : icon ? (
+          <FontAwesome6 name={icon} size={28} color="#687076" />
+        ) : null}
       </View>
       <Text style={styles.tileLabel} numberOfLines={2}>{label}</Text>
     </TouchableOpacity>
@@ -674,6 +680,22 @@ const MOBILITY_SUB_OPTIONS: Record<string, Option[]> = {
     { value: '2', label: 'Long towed array' },
   ],
 };
+
+const ECHELON_GROUP_OPTIONS: Option[] = [
+  { value: '0', label: 'Unknown' },
+  { value: '1', label: 'Brigade and below' },
+  { value: '2', label: 'Division and above' },
+  { value: '7', label: 'Individual Leader' },
+];
+
+// Custom "XX" glyph for the Division and above tile (two touching X marks).
+const DIVISION_XX_SVG = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 20">
+  <g stroke="#687076" stroke-width="3" stroke-linecap="round" fill="none">
+    <path d="M1,2 L15,18 M15,2 L1,18" />
+    <path d="M17,2 L31,18 M31,2 L17,18" />
+  </g>
+</svg>`;
 
 const MOBILITY_TYPE_OPTIONS: { value: string; label: string; icon: ComponentProps<typeof FontAwesome6>['name'] }[] = [
   { value: '3', label: 'Mobile on land', icon: 'mountain' },
@@ -1128,13 +1150,30 @@ export default function LookupScreen() {
 
           <View style={{ marginBottom: 24 }}>
             <View style={styles.breadcrumbRow}>
-              <TouchableOpacity
-                onPress={() => { setMobility(null); setMobilityEchelon('0'); }}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered]}>Mobility</Text>
+              <TouchableOpacity onPress={() => handleLevelModeSelect('0')} activeOpacity={0.7}>
+                <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered]}>Mobility & Leadership</Text>
               </TouchableOpacity>
-              {mobility !== null && (
+
+              {levelMode === '1' && (
+                <>
+                  <Text style={styles.breadcrumbSep}>›</Text>
+                  <TouchableOpacity onPress={() => setEchelon(null)} activeOpacity={0.7}>
+                    <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, styles.breadcrumbItemActive]}>
+                      {ECHELON_GROUP_OPTIONS.find(o => o.value === echelonGroup)?.label}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
+              {levelMode === '1' && echelonGroup !== '0' && (
+                <>
+                  <Text style={styles.breadcrumbSep}>›</Text>
+                  <Text style={[styles.breadcrumbItem, echelon !== null ? styles.breadcrumbItemAnswered : styles.breadcrumbItemActive]}>
+                    {ECHELON_OPTIONS[echelonGroup]?.find(o => o.value === echelon)?.label ?? 'Echelon'}
+                  </Text>
+                </>
+              )}
+
+              {levelMode === '2' && mobility !== null && (
                 <>
                   <Text style={styles.breadcrumbSep}>›</Text>
                   <TouchableOpacity onPress={() => setMobilityEchelon('0')} activeOpacity={0.7}>
@@ -1144,31 +1183,39 @@ export default function LookupScreen() {
                   </TouchableOpacity>
                 </>
               )}
-              {mobility !== null && (MOBILITY_SUB_OPTIONS[mobility]?.length ?? 0) > 0 && (
+              {levelMode === '2' && mobility !== null && (MOBILITY_SUB_OPTIONS[mobility]?.length ?? 0) > 0 && (
                 <>
                   <Text style={styles.breadcrumbSep}>›</Text>
-                  <TouchableOpacity onPress={() => setMobilityEchelon('0')} activeOpacity={0.7}>
-                    <Text style={[
-                      styles.breadcrumbItem,
-                      mobilityEchelon !== '0' && styles.breadcrumbItemAnswered,
-                      mobilityEchelon === '0' && styles.breadcrumbItemActive,
-                    ]}>
-                      {MOBILITY_SUB_OPTIONS[mobility]?.find(o => o.value === mobilityEchelon)?.label ?? 'Type'}
-                    </Text>
-                  </TouchableOpacity>
+                  <Text style={[
+                    styles.breadcrumbItem,
+                    mobilityEchelon !== '0' && styles.breadcrumbItemAnswered,
+                    mobilityEchelon === '0' && styles.breadcrumbItemActive,
+                  ]}>
+                    {MOBILITY_SUB_OPTIONS[mobility]?.find(o => o.value === mobilityEchelon)?.label ?? 'Type'}
+                  </Text>
                 </>
               )}
             </View>
 
-            {mobility === null && (
+            {levelMode === '0' && (
               <View style={styles.gridSection}>
                 <View style={styles.gridRow}>
+                  {ECHELON_GROUP_OPTIONS.filter(opt => opt.value !== '0').map(opt => (
+                    <DomainTile
+                      key={`leadership-${opt.value}`}
+                      label={opt.label}
+                      icon={opt.value === '1' ? 'x' : opt.value === '7' ? 'chevron-up' : undefined}
+                      svg={opt.value === '2' ? DIVISION_XX_SVG : undefined}
+                      selected={false}
+                      onPress={() => { setLevelMode('1'); setEchelonGroup(opt.value); setEchelon(null); }}
+                    />
+                  ))}
                   {MOBILITY_TYPE_OPTIONS.map(opt => (
                     <DomainTile
-                      key={opt.value}
+                      key={`mobility-${opt.value}`}
                       label={opt.label}
                       icon={opt.icon}
-                      selected={mobility === opt.value}
+                      selected={false}
                       onPress={() => { setLevelMode('2'); handleMobilitySelect(opt.value); }}
                     />
                   ))}
@@ -1176,7 +1223,23 @@ export default function LookupScreen() {
               </View>
             )}
 
-            {mobility !== null && (MOBILITY_SUB_OPTIONS[mobility]?.length ?? 0) > 0 && (
+            {levelMode === '1' && echelonGroup !== '0' && (
+              <View style={styles.gridSection}>
+                <View style={styles.gridRow}>
+                  {(ECHELON_OPTIONS[echelonGroup] ?? []).map(opt => (
+                    <EntityTypeTile
+                      key={opt.value}
+                      label={opt.label}
+                      sidc={patchSIDC(patchSIDC(sidc, 9, echelonGroup), 10, opt.value)}
+                      selected={echelon === opt.value}
+                      onPress={() => setEchelon(opt.value)}
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {levelMode === '2' && mobility !== null && (MOBILITY_SUB_OPTIONS[mobility]?.length ?? 0) > 0 && (
               <View style={styles.gridSection}>
                 <View style={styles.gridRow}>
                   {(MOBILITY_SUB_OPTIONS[mobility] ?? []).map(opt => (
@@ -1229,50 +1292,7 @@ export default function LookupScreen() {
             zIndex={3}
           />
 
-          <QuestionLabel label="Q10  Do you need to set a leadership level or define mobility status?" onReset={() => handleLevelModeSelect('0')} />
-          <Dropdown
-            placeholder="Select…"
-            options={[
-              { value: '0', label: 'No' },
-              { value: '1', label: "Yes, I'm stationary and need to set a leadership level" },
-            ]}
-            value={levelMode}
-            onSelect={handleLevelModeSelect}
-            zIndex={3}
-          />
-
-          {levelMode === '1' && (
-            <>
-              <QuestionLabel label="Q11  What is your leadership level?" onReset={() => { setEchelonGroup('0'); setEchelon(null); }} />
-              <Dropdown
-                placeholder="Select…"
-                options={[
-                  { value: '0', label: 'Unknown' },
-                  { value: '1', label: 'Brigade and below' },
-                  { value: '2', label: 'Division and above' },
-                  { value: '7', label: 'Individual Leader' },
-                ]}
-                value={echelonGroup}
-                onSelect={v => { setEchelonGroup(v); setEchelon(null); }}
-                zIndex={2}
-              />
-
-              {echelonGroup !== '0' && (
-                <>
-                  <QuestionLabel label="Q12  Echelon Options" onReset={() => setEchelon(null)} />
-                  <Dropdown
-                    placeholder="Select an echelon…"
-                    options={ECHELON_OPTIONS[echelonGroup] ?? []}
-                    value={echelon}
-                    onSelect={setEchelon}
-                    zIndex={1}
-                  />
-                </>
-              )}
-            </>
-          )}
-
-          <QuestionLabel label="Q13  Are you planning an exercise or simulation?" onReset={() => { setExercise('--'); setContext(null); }} />
+          <QuestionLabel label="Q10  Are you planning an exercise or simulation?" onReset={() => { setExercise('--'); setContext(null); }} />
           <Dropdown
             placeholder="Select…"
             options={[
@@ -1288,7 +1308,7 @@ export default function LookupScreen() {
 
           {exercise !== '--' && (
             <>
-              <QuestionLabel label="Q14  Is this a restricted target or no-strike entity?" onReset={() => setContext(null)} />
+              <QuestionLabel label="Q11  Is this a restricted target or no-strike entity?" onReset={() => setContext(null)} />
               <Dropdown
                 placeholder="Select a context…"
                 options={CONTEXT_OPTIONS[exercise]}

@@ -2,6 +2,22 @@ export type ModOption = { value: string; label: string };
 export type CommonModOption = { value: string; label: string; category: string };
 
 export const MODIFIER1_OPTIONS: Record<string, ModOption[]> = {
+  '60': [ // Cyberspace (MIL-STD-2525E w/Change 1, Appendix K, Table K-IV)
+    { value: '01', label: 'Defensive Cyberspace' },
+    { value: '02', label: 'Offensive Cyberspace' },
+    { value: '03', label: 'Social' },
+    { value: '04', label: 'Wired' },
+    { value: '05', label: 'Wireless' },
+    { value: '06', label: 'Radio Frequency' },
+    { value: '07', label: 'Operating System' },
+    { value: '08', label: 'Continuity of Operations' },
+    { value: '09', label: 'Internet Service Provider (ISP)' },
+    { value: '10', label: 'Finance' },
+    { value: '11', label: 'Out of Band' },
+    { value: '12', label: 'Cloud' },
+    { value: '13', label: 'Data' },
+    { value: '14', label: 'Service' },
+  ],
   '01': [ // Air
     { value: '01', label: 'Attack' },
     { value: '02', label: 'Bomber' },
@@ -154,6 +170,15 @@ export const MODIFIER1_OPTIONS: Record<string, ModOption[]> = {
 };
 
 export const MODIFIER2_OPTIONS: Record<string, ModOption[]> = {
+  '60': [ // Cyberspace (MIL-STD-2525E w/Change 1, Appendix K, Table K-V)
+    { value: '01', label: 'Secured' },
+    { value: '02', label: 'Open' },
+    { value: '03', label: 'Response Actions' },
+    { value: '05', label: 'Internal Defense Measures' },
+    { value: '06', label: 'Advanced Persistent Threat' },
+    { value: '07', label: 'Nation State' },
+    { value: '08', label: 'Nation State Sponsored' },
+  ],
   '01': [ // Air
     { value: '01', label: 'Heavy' },
     { value: '02', label: 'Medium' },

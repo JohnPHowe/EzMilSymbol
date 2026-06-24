@@ -18,13 +18,14 @@ import { SvgXml } from 'react-native-svg';
 
 // ── Domain / Sub-domain ───────────────────────────────────────────────────────
 
-type Domain = 'Air' | 'Land' | 'Space' | 'Surface' | 'Subsurface';
+type Domain = 'Air' | 'Cyber' | 'Land' | 'Space' | 'Surface' | 'Subsurface';
 type Option = { label: string; value: string };
 
-const DOMAINS: Domain[] = ['Air', 'Land', 'Space', 'Subsurface', 'Surface'];
+const DOMAINS: Domain[] = ['Air', 'Cyber', 'Land', 'Space', 'Subsurface', 'Surface'];
 
 const DOMAIN_ICONS: Record<Domain, ComponentProps<typeof FontAwesome6>['name']> = {
   Air: 'wind',
+  Cyber: 'computer',
   Land: 'mountain',
   Space: 'moon',
   Surface: 'water',
@@ -36,6 +37,9 @@ const SYMBOL_SETS: Record<Domain, Option[]> = {
     { value: '01', label: 'Air' },
     { value: '02', label: 'Air Missile' },
     { value: '45', label: 'Atmospheric (Weather)' },
+  ],
+  Cyber: [
+    { value: '60', label: 'Cyberspace' },
   ],
   Land: [
     { value: '10', label: 'Land Unit' },

@@ -9,6 +9,95 @@ export type EntityDef     = { value: string; label: string; types: EntityType[] 
 // Source: milsymbol sId key patterns in node_modules/milsymbol/src/numbersidc/sidc/
 export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
 
+  // ── Cyberspace (symbolSet "60") ──────────────────────────────────────────────
+  // Source: MIL-STD-2525E w/Change 1, Appendix K (Table K-III), cross-referenced
+  // against node_modules/milsymbol/src/numbersidc/sidc/cyberspace.js. A few
+  // entries that couldn't be confirmed against Table K-III (entity "Agent"
+  // and its types Firewall/Firmware/Unknown/Impaired; "Insider" subtypes;
+  // the "(Text)" Router/Firewall/Switch entries under Application) have been
+  // omitted rather than guessed.
+  '60': [
+    {
+      value: '11', label: 'Cyberspace Unit', types: [
+        { value: '01', label: 'Combat Mission Team', subtypes: [] },
+        { value: '02', label: 'National Mission Team', subtypes: [] },
+        { value: '03', label: 'Cyber Protection Team', subtypes: [] },
+        { value: '06', label: 'Defensive Cyberspace Operation', subtypes: [] },
+        { value: '07', label: 'Offensive Cyberspace Operation', subtypes: [] },
+        { value: '08', label: 'Internet Service Provider', subtypes: [] },
+        { value: '09', label: 'Security', subtypes: [] },
+        { value: '10', label: 'Operations', subtypes: [] },
+      ],
+    },
+    {
+      value: '12', label: 'Threat Actor', types: [
+        { value: '01', label: 'Advanced Persistent Threat (APT)', subtypes: [
+          { value: '01', label: 'APT with C2' },
+          { value: '02', label: 'APT with Self Propagation' },
+          { value: '03', label: 'APT with C2 and Self Propagation' },
+          { value: '04', label: 'APT Other' },
+        ]},
+        { value: '02', label: 'Insider', subtypes: [] },
+      ],
+    },
+    {
+      value: '14', label: 'Application', types: [
+        { value: '01', label: 'Core Router', subtypes: [] },
+        { value: '03', label: 'Search Engine', subtypes: [] },
+        { value: '04', label: 'Social Media', subtypes: [] },
+        { value: '05', label: 'Web Server', subtypes: [] },
+        { value: '06', label: 'Domain Server', subtypes: [] },
+        { value: '07', label: 'File Server', subtypes: [] },
+        { value: '08', label: 'Peer-to-Peer Node', subtypes: [] },
+        { value: '11', label: 'Host', subtypes: [] },
+        { value: '12', label: 'Virtual Private Network (VPN)', subtypes: [] },
+      ],
+    },
+    {
+      value: '15', label: 'Threat', types: [
+        { value: '01', label: 'Malware', subtypes: [] },
+        { value: '02', label: 'Phishing', subtypes: [] },
+        { value: '03', label: 'Spear Phishing', subtypes: [] },
+        { value: '04', label: 'Whale Phishing', subtypes: [] },
+      ],
+    },
+    {
+      value: '16', label: 'Data', types: [
+        { value: '01', label: 'Digital Currency', subtypes: [] },
+        { value: '02', label: 'Persona', subtypes: [] },
+        { value: '03', label: 'Data Spoofing', subtypes: [] },
+        { value: '04', label: 'Data Manipulation', subtypes: [] },
+        { value: '05', label: 'Exfiltration', subtypes: [] },
+        { value: '06', label: 'Power Outage', subtypes: [] },
+        { value: '07', label: 'Network Outage', subtypes: [] },
+        { value: '08', label: 'Service Outage', subtypes: [] },
+        { value: '09', label: 'Device Outage', subtypes: [] },
+      ],
+    },
+    {
+      value: '17', label: 'End Point', types: [
+        { value: '01', label: 'Server', subtypes: [] },
+        { value: '02', label: 'Workstation', subtypes: [] },
+        { value: '03', label: 'Portable Electronic Device (PED)', subtypes: [
+          { value: '01', label: 'Smartphone' },
+          { value: '02', label: 'Tablet' },
+          { value: '03', label: 'Laptop' },
+          { value: '04', label: 'Health Monitor' },
+          { value: '05', label: 'Smartvest' },
+          { value: '06', label: 'Smartwatch' },
+          { value: '07', label: 'Wearable' },
+        ]},
+        { value: '04', label: 'Internet of Things Device', subtypes: [] },
+        { value: '05', label: 'Printer', subtypes: [] },
+        { value: '06', label: 'Router', subtypes: [] },
+        { value: '07', label: 'Switch', subtypes: [] },
+      ],
+    },
+    {
+      value: '18', label: 'Network', types: [],
+    },
+  ],
+
   // ── Land Unit (symbolSet "10") ──────────────────────────────────────────────
   '10': [
     {

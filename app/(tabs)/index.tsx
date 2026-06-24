@@ -1,5 +1,5 @@
 import { ENTITY_OPTIONS, type EntityDef, type EntityType } from '@/assets/data/entityOptions';
-import { MODIFIER1_OPTIONS, MODIFIER2_OPTIONS } from '@/assets/data/modifierOptions';
+import { COMMON_MODIFIER1_OPTIONS, COMMON_MODIFIER2_OPTIONS, MODIFIER1_OPTIONS, MODIFIER2_OPTIONS } from '@/assets/data/modifierOptions';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Fuse from 'fuse.js';
 import ms from 'milsymbol';
@@ -120,7 +120,7 @@ const GROUP_STARTS: number[][] = (() => {
 function SymbolPreview({ sidc }: { sidc: string }) {
   const { svg, naturalW, naturalH } = useMemo(() => {
     try {
-      const symbol = new ms.Symbol(sidc, { size: 100 });
+      const symbol = createSymbol(sidc, { size: 100 });
       const { width: naturalW, height: naturalH } = symbol.getSize();
       return { svg: symbol.asSVG(), naturalW, naturalH };
     } catch {
@@ -152,7 +152,7 @@ function triggerDownload(url: string, filename: string) {
 }
 
 function downloadSymbolSVG(sidc: string) {
-  const symbol = new ms.Symbol(sidc, { size: 200 });
+  const symbol = createSymbol(sidc, { size: 200 });
   const blob = new Blob([symbol.asSVG()], { type: 'image/svg+xml' });
   const url = URL.createObjectURL(blob);
   triggerDownload(url, 'symbol.svg');
@@ -160,7 +160,7 @@ function downloadSymbolSVG(sidc: string) {
 }
 
 function downloadSymbolPNG(sidc: string) {
-  const symbol = new ms.Symbol(sidc, { size: 200 });
+  const symbol = createSymbol(sidc, { size: 200 });
   const canvas = symbol.asCanvas(2);
   triggerDownload(canvas.toDataURL('image/png'), 'symbol.png');
 }
@@ -207,7 +207,7 @@ function AffiliationTile({
 }) {
   const svg = useMemo(() => {
     try {
-      return new ms.Symbol(sidc, { size: 64 }).asSVG();
+      return createSymbol(sidc, { size: 64 }).asSVG();
     } catch {
       return null;
     }
@@ -397,7 +397,7 @@ function EntityTypeTile({
 }) {
   const svg = useMemo(() => {
     try {
-      return new ms.Symbol(sidc, { size: 30 }).asSVG();
+      return createSymbol(sidc, { size: 30 }).asSVG();
     } catch {
       return null;
     }
@@ -697,6 +697,11 @@ const DIVISION_XX_SVG = `
   </g>
 </svg>`;
 
+// Sentinel value for modifier1Category/modifier2Category marking "the
+// dimension-specific group" (as opposed to one of the common-modifier
+// category names, which are arbitrary strings from the MIL-STD-2525E data).
+const DIMENSION_GROUP = '__dimension__';
+
 const STATUS_OPTIONS: Option[] = [
   { value: '0', label: 'Present' },
   { value: '1', label: 'Planned/Anticipated/Suspect' },
@@ -716,6 +721,20 @@ const HQTFFD_OPTIONS: Option[] = [
   { value: '6', label: 'Task Force Headquarters' },
   { value: '7', label: 'Feint/Dummy Task Force Headquarters' },
 ];
+
+const EXERCISE_OPTIONS: Option[] = [
+  { value: 'real', label: 'None' },
+  { value: 'exercise', label: 'Yes, exercise' },
+  { value: 'simulation', label: 'Yes, simulation' },
+];
+
+// Baseline context digit (position 3) for each exercise type, before any
+// Restricted Target / No-Strike Entity override from Q11.
+const EXERCISE_CONTEXT_BASELINE: Record<string, string> = {
+  real: '0',
+  exercise: '1',
+  simulation: '2',
+};
 
 const MOBILITY_TYPE_OPTIONS: { value: string; label: string; icon: ComponentProps<typeof FontAwesome6>['name'] }[] = [
   { value: '3', label: 'Mobile on land', icon: 'mountain' },
@@ -745,6 +764,25 @@ const CONTEXT_OPTIONS: Record<string, Option[]> = {
 function patchSIDC(sidc: string, pos: number, value: string) {
   const i = pos - 1; // pos is 1-indexed
   return sidc.slice(0, i) + value + sidc.slice(i + value.length);
+}
+
+// milsymbol maps standard identity "Suspect" (digit 4 = '5') into the same
+// "Hostile" color bucket as true Hostile/Faker, and only tells them apart
+// when the SIDC version digits are '13' (which this app's SIDCs never use).
+// Override fillColor.Hostile to the real Suspect amber for just this render
+// so Suspect/Joker symbols don't show up red like actual Hostile/Faker.
+const SUSPECT_FILL_FIX = {
+  Civilian: 'rgb(255,161,255)',
+  Friend: 'rgb(128,224,255)',
+  Hostile: 'rgb(255, 229, 153)',
+  Neutral: 'rgb(170,255,170)',
+  Unknown: 'rgb(255,255,128)',
+  Suspect: 'rgb(255, 229, 153)',
+};
+
+function createSymbol(sidc: string, options: Record<string, unknown> = {}) {
+  const isSuspect = sidc.charAt(3) === '5';
+  return new ms.Symbol(sidc, isSuspect ? { ...options, colorMode: SUSPECT_FILL_FIX } : options);
 }
 
 // ── Search index ──────────────────────────────────────────────────────────────
@@ -827,7 +865,7 @@ const SEARCH_FUSE = new Fuse(SEARCH_INDEX, {
 function SearchResultRow({ result, affiliation, onPress }: { result: SearchResult; affiliation: string; onPress: () => void }) {
   const svg = useMemo(() => {
     try {
-      return new ms.Symbol(patchSIDC(result.sidc, 4, affiliation), { size: 20 }).asSVG();
+      return createSymbol(patchSIDC(result.sidc, 4, affiliation), { size: 20 }).asSVG();
     } catch {
       return null;
     }
@@ -845,7 +883,7 @@ function SearchResultRow({ result, affiliation, onPress }: { result: SearchResul
 
 export default function LookupScreen() {
   const [query, setQuery]         = useState('');
-  const [exercise, setExercise]       = useState('--');
+  const [exercise, setExercise]       = useState('real');
   const [context, setContext]         = useState<string | null>(null);
   const [domain, setDomain]           = useState<Domain | null>(null);
   const [symbolSet, setSymbolSet]     = useState<string | null>(null);
@@ -862,10 +900,14 @@ export default function LookupScreen() {
   const [entitySubtype, setEntitySubtype] = useState<string | null>(null);
   const [modifier1, setModifier1] = useState<string | null>(null);
   const [modifier2, setModifier2] = useState<string | null>(null);
+  const [modifier1Common, setModifier1Common] = useState(false);
+  const [modifier2Common, setModifier2Common] = useState(false);
+  const [modifier1Category, setModifier1Category] = useState<string | null>(null);
+  const [modifier2Category, setModifier2Category] = useState<string | null>(null);
   const [openStep, setOpenStep]   = useState<number | null>(1);
 
   function resetAll() {
-    setExercise('--');
+    setExercise('real');
     setContext(null);
     setDomain(null);
     setSymbolSet(null);
@@ -882,6 +924,10 @@ export default function LookupScreen() {
     setMobilityEchelon('0');
     setModifier1(null);
     setModifier2(null);
+    setModifier1Common(false);
+    setModifier2Common(false);
+    setModifier1Category(null);
+    setModifier2Category(null);
     setOpenStep(1);
   }
 
@@ -937,7 +983,7 @@ export default function LookupScreen() {
 
   function handleExerciseSelect(v: string) {
     setExercise(v);
-    setContext(null);
+    setContext(EXERCISE_CONTEXT_BASELINE[v] ?? null);
   }
 
   const sidc = useMemo(() => {
@@ -956,8 +1002,10 @@ export default function LookupScreen() {
     s = patchSIDC(s, 15, entitySubtype ?? '00');
     s = patchSIDC(s, 17, modifier1 ?? '00');
     s = patchSIDC(s, 19, modifier2 ?? '00');
+    s = patchSIDC(s, 21, modifier1Common ? '1' : '0');
+    s = patchSIDC(s, 22, modifier2Common ? '1' : '0');
     return s;
-  }, [context, affiliation, symbolSet, status, hqtffd, levelMode, echelonGroup, echelon, mobility, mobilityEchelon, entity, entityType, entitySubtype, modifier1, modifier2]);
+  }, [context, affiliation, symbolSet, status, hqtffd, levelMode, echelonGroup, echelon, mobility, mobilityEchelon, entity, entityType, entitySubtype, modifier1, modifier2, modifier1Common, modifier2Common]);
 
   function handleDomainSelect(d: Domain) {
     setDomain(d);
@@ -1291,37 +1339,149 @@ export default function LookupScreen() {
             </View>
           </View>
 
-          {symbolSet !== null && (MODIFIER1_OPTIONS[symbolSet]?.length ?? 0) > 0 && (
+          {symbolSet !== null && (
             <View style={styles.gridSection}>
-              <Text style={styles.gridCategoryHeading}>Sector 1 Modifier</Text>
-              <View style={styles.gridRow}>
-                {[{ value: '00', label: 'None' }, ...[...(MODIFIER1_OPTIONS[symbolSet] ?? [])].sort((a, b) => a.label.localeCompare(b.label))].map(opt => (
-                  <EntityTypeTile
-                    key={opt.value}
-                    label={opt.label}
-                    sidc={patchSIDC(sidc, 17, opt.value)}
-                    selected={(modifier1 ?? '00') === opt.value}
-                    onPress={() => setModifier1(opt.value)}
-                  />
-                ))}
+              <View style={[styles.breadcrumbRow, { marginBottom: 12 }]}>
+                <TouchableOpacity onPress={() => setModifier1Category(null)} activeOpacity={0.7}>
+                  <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered]}>Sector 1 Modifiers</Text>
+                </TouchableOpacity>
+                {modifier1Category !== null && (
+                  <>
+                    <Text style={styles.breadcrumbSep}>›</Text>
+                    <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, styles.breadcrumbItemActive]}>
+                      {modifier1Category === DIMENSION_GROUP ? symbolSetLabel : modifier1Category}
+                    </Text>
+                  </>
+                )}
               </View>
+
+              {modifier1Category === null ? (
+                <View style={styles.gridRow}>
+                  {(() => {
+                    const firstDimensionMod = [...(MODIFIER1_OPTIONS[symbolSet] ?? [])].sort((a, b) => a.label.localeCompare(b.label))[0];
+                    return firstDimensionMod && (
+                      <EntityTypeTile
+                        label={symbolSetLabel ?? 'Dimension-Specific'}
+                        sidc={patchSIDC(patchSIDC(sidc, 17, firstDimensionMod.value), 21, '0')}
+                        selected={false}
+                        onPress={() => setModifier1Category(DIMENSION_GROUP)}
+                      />
+                    );
+                  })()}
+                  {[...new Set(COMMON_MODIFIER1_OPTIONS.map(o => o.category))].sort().map(cat => {
+                    const firstInCat = COMMON_MODIFIER1_OPTIONS.filter(o => o.category === cat).sort((a, b) => a.label.localeCompare(b.label))[0];
+                    return (
+                      <EntityTypeTile
+                        key={cat}
+                        label={cat}
+                        sidc={patchSIDC(patchSIDC(sidc, 17, firstInCat.value), 21, '1')}
+                        selected={false}
+                        onPress={() => setModifier1Category(cat)}
+                      />
+                    );
+                  })}
+                </View>
+              ) : modifier1Category === DIMENSION_GROUP ? (
+                <View style={styles.gridRow}>
+                  {[{ value: '00', label: 'None' }, ...[...(MODIFIER1_OPTIONS[symbolSet] ?? [])].sort((a, b) => a.label.localeCompare(b.label))].map(opt => (
+                    <EntityTypeTile
+                      key={opt.value}
+                      label={opt.label}
+                      sidc={patchSIDC(patchSIDC(sidc, 17, opt.value), 21, '0')}
+                      selected={!modifier1Common && (modifier1 ?? '00') === opt.value}
+                      onPress={() => { setModifier1(opt.value); setModifier1Common(false); }}
+                    />
+                  ))}
+                </View>
+              ) : (
+                <View style={styles.gridRow}>
+                  {COMMON_MODIFIER1_OPTIONS
+                    .filter(o => o.category === modifier1Category)
+                    .sort((a, b) => a.label.localeCompare(b.label))
+                    .map(opt => (
+                      <EntityTypeTile
+                        key={opt.value}
+                        label={opt.label}
+                        sidc={patchSIDC(patchSIDC(sidc, 17, opt.value), 21, '1')}
+                        selected={modifier1Common && modifier1 === opt.value}
+                        onPress={() => { setModifier1(opt.value); setModifier1Common(true); }}
+                      />
+                    ))}
+                </View>
+              )}
             </View>
           )}
 
-          {symbolSet !== null && (MODIFIER2_OPTIONS[symbolSet]?.length ?? 0) > 0 && (
+          {symbolSet !== null && (
             <View style={styles.gridSection}>
-              <Text style={styles.gridCategoryHeading}>Sector 2 Modifier</Text>
-              <View style={styles.gridRow}>
-                {[{ value: '00', label: 'None' }, ...[...(MODIFIER2_OPTIONS[symbolSet] ?? [])].sort((a, b) => a.label.localeCompare(b.label))].map(opt => (
-                  <EntityTypeTile
-                    key={opt.value}
-                    label={opt.label}
-                    sidc={patchSIDC(sidc, 19, opt.value)}
-                    selected={(modifier2 ?? '00') === opt.value}
-                    onPress={() => setModifier2(opt.value)}
-                  />
-                ))}
+              <View style={[styles.breadcrumbRow, { marginBottom: 12 }]}>
+                <TouchableOpacity onPress={() => setModifier2Category(null)} activeOpacity={0.7}>
+                  <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered]}>Sector 2 Modifiers</Text>
+                </TouchableOpacity>
+                {modifier2Category !== null && (
+                  <>
+                    <Text style={styles.breadcrumbSep}>›</Text>
+                    <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, styles.breadcrumbItemActive]}>
+                      {modifier2Category === DIMENSION_GROUP ? symbolSetLabel : modifier2Category}
+                    </Text>
+                  </>
+                )}
               </View>
+
+              {modifier2Category === null ? (
+                <View style={styles.gridRow}>
+                  {(() => {
+                    const firstDimensionMod = [...(MODIFIER2_OPTIONS[symbolSet] ?? [])].sort((a, b) => a.label.localeCompare(b.label))[0];
+                    return firstDimensionMod && (
+                      <EntityTypeTile
+                        label={symbolSetLabel ?? 'Dimension-Specific'}
+                        sidc={patchSIDC(patchSIDC(sidc, 19, firstDimensionMod.value), 22, '0')}
+                        selected={false}
+                        onPress={() => setModifier2Category(DIMENSION_GROUP)}
+                      />
+                    );
+                  })()}
+                  {[...new Set(COMMON_MODIFIER2_OPTIONS.map(o => o.category))].sort().map(cat => {
+                    const firstInCat = COMMON_MODIFIER2_OPTIONS.filter(o => o.category === cat).sort((a, b) => a.label.localeCompare(b.label))[0];
+                    return (
+                      <EntityTypeTile
+                        key={cat}
+                        label={cat}
+                        sidc={patchSIDC(patchSIDC(sidc, 19, firstInCat.value), 22, '1')}
+                        selected={false}
+                        onPress={() => setModifier2Category(cat)}
+                      />
+                    );
+                  })}
+                </View>
+              ) : modifier2Category === DIMENSION_GROUP ? (
+                <View style={styles.gridRow}>
+                  {[{ value: '00', label: 'None' }, ...[...(MODIFIER2_OPTIONS[symbolSet] ?? [])].sort((a, b) => a.label.localeCompare(b.label))].map(opt => (
+                    <EntityTypeTile
+                      key={opt.value}
+                      label={opt.label}
+                      sidc={patchSIDC(patchSIDC(sidc, 19, opt.value), 22, '0')}
+                      selected={!modifier2Common && (modifier2 ?? '00') === opt.value}
+                      onPress={() => { setModifier2(opt.value); setModifier2Common(false); }}
+                    />
+                  ))}
+                </View>
+              ) : (
+                <View style={styles.gridRow}>
+                  {COMMON_MODIFIER2_OPTIONS
+                    .filter(o => o.category === modifier2Category)
+                    .sort((a, b) => a.label.localeCompare(b.label))
+                    .map(opt => (
+                      <EntityTypeTile
+                        key={opt.value}
+                        label={opt.label}
+                        sidc={patchSIDC(patchSIDC(sidc, 19, opt.value), 22, '1')}
+                        selected={modifier2Common && modifier2 === opt.value}
+                        onPress={() => { setModifier2(opt.value); setModifier2Common(true); }}
+                      />
+                    ))}
+                </View>
+              )}
             </View>
           )}
 
@@ -1343,32 +1503,29 @@ export default function LookupScreen() {
             </View>
           </View>
 
-          <QuestionLabel label="Q10  Are you planning an exercise or simulation?" onReset={() => { setExercise('--'); setContext(null); }} />
-          <Dropdown
-            placeholder="Select…"
-            options={[
-              { value: '--',         label: '--' },
-              { value: 'real',       label: 'Nope, real life' },
-              { value: 'exercise',   label: 'Yes, exercise' },
-              { value: 'simulation', label: 'Yes, simulation' },
-            ]}
-            value={exercise}
-            onSelect={handleExerciseSelect}
-            zIndex={4}
-          />
+          <View style={styles.gridSection}>
+            <Text style={styles.gridCategoryHeading}>Exercise / Simulation</Text>
+            <View style={styles.gridRow}>
+              {EXERCISE_OPTIONS.map(opt => (
+                <EntityTypeTile
+                  key={opt.value}
+                  label={opt.label}
+                  sidc={patchSIDC(sidc, 3, EXERCISE_CONTEXT_BASELINE[opt.value] ?? '0')}
+                  selected={exercise === opt.value}
+                  onPress={() => handleExerciseSelect(opt.value)}
+                />
+              ))}
+            </View>
+          </View>
 
-          {exercise !== '--' && (
-            <>
-              <QuestionLabel label="Q11  Is this a restricted target or no-strike entity?" onReset={() => setContext(null)} />
-              <Dropdown
-                placeholder="Select a context…"
-                options={CONTEXT_OPTIONS[exercise]}
-                value={context}
-                onSelect={setContext}
-                zIndex={3}
-              />
-            </>
-          )}
+          <QuestionLabel label="Q11  Is this a restricted target or no-strike entity?" onReset={() => setContext(null)} />
+          <Dropdown
+            placeholder="Select a context…"
+            options={CONTEXT_OPTIONS[exercise]}
+            value={context}
+            onSelect={setContext}
+            zIndex={3}
+          />
         </View>
 
         <SIDCDisplay sidc={sidc} />

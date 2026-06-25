@@ -124,16 +124,16 @@ const GROUP_STARTS: number[][] = (() => {
 
 // ── SymbolPreview ─────────────────────────────────────────────────────────────
 
-function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed' }: { sidc: string; colorMode?: string; fillMode?: string }) {
+function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', simpleStatusModifier = false }: { sidc: string; colorMode?: string; fillMode?: string; simpleStatusModifier?: boolean }) {
   const { svg, naturalW, naturalH } = useMemo(() => {
     try {
-      const symbol = createSymbol(sidc, { size: 100, colorMode, ...getFillExtras(fillMode, colorMode) });
+      const symbol = createSymbol(sidc, { size: 100, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined });
       const { width: naturalW, height: naturalH } = symbol.getSize();
       return { svg: symbol.asSVG(), naturalW, naturalH };
     } catch {
       return { svg: null, naturalW: 0, naturalH: 0 };
     }
-  }, [sidc, colorMode, fillMode]);
+  }, [sidc, colorMode, fillMode, simpleStatusModifier]);
 
   const MAX_W = 280, MAX_H = 200;
   const scale = naturalW && naturalH ? Math.min(MAX_W / naturalW, MAX_H / naturalH) : 1;
@@ -411,6 +411,7 @@ function EntityTypeTile({
   onPress,
   colorMode = 'Light',
   fillMode = 'filledFramed',
+  simpleStatusModifier = false,
 }: {
   label: string;
   sidc: string;
@@ -418,14 +419,15 @@ function EntityTypeTile({
   onPress: () => void;
   colorMode?: string;
   fillMode?: string;
+  simpleStatusModifier?: boolean;
 }) {
   const svg = useMemo(() => {
     try {
-      return createSymbol(sidc, { size: 30, colorMode, ...getFillExtras(fillMode, colorMode) }).asSVG();
+      return createSymbol(sidc, { size: 30, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined }).asSVG();
     } catch {
       return null;
     }
-  }, [sidc, colorMode, fillMode]);
+  }, [sidc, colorMode, fillMode, simpleStatusModifier]);
 
   return (
     <TouchableOpacity
@@ -786,12 +788,14 @@ const DIVISION_XX_SVG = `
 // category names, which are arbitrary strings from the MIL-STD-2525E data).
 const DIMENSION_GROUP = '__dimension__';
 
-const STATUS_OPTIONS: Option[] = [
+const STATUS_OPTIONS: (Option & { simpleStatusModifier?: boolean })[] = [
   { value: '0', label: 'Present' },
   { value: '1', label: 'Planned/Anticipated/Suspect' },
   { value: '2', label: 'Present/Fully Capable' },
-  { value: '3', label: 'Present/Damaged' },
-  { value: '4', label: 'Present/Destroyed' },
+  { value: '3', label: 'Damaged (Bar)' },
+  { value: '3', label: 'Damaged (Slash)', simpleStatusModifier: true },
+  { value: '4', label: 'Destroyed (Bar)' },
+  { value: '4', label: 'Destroyed (X)', simpleStatusModifier: true },
   { value: '5', label: 'Present/Full to Capacity' },
 ];
 
@@ -1047,6 +1051,7 @@ export default function LookupScreen() {
   const [openStep, setOpenStep]   = useState<number | null>(1);
   const [colorMode, setColorMode] = useState('Light');
   const [fillMode,  setFillMode]  = useState('filledFramed');
+  const [simpleStatusModifier, setSimpleStatusModifier] = useState(false);
 
   function resetAll() {
     setExercise('real');
@@ -1072,6 +1077,7 @@ export default function LookupScreen() {
     setOpenStep(1);
     setColorMode('Light');
     setFillMode('filledFramed');
+    setSimpleStatusModifier(false);
   }
 
   function handleEntitySelect(v: string) {
@@ -1168,7 +1174,7 @@ export default function LookupScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
         <View>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-            <SymbolPreview sidc={sidc} colorMode={colorMode} fillMode={fillMode} />
+            <SymbolPreview sidc={sidc} colorMode={colorMode} fillMode={fillMode} simpleStatusModifier={simpleStatusModifier} />
             <TouchableOpacity onPress={resetAll} style={styles.resetButton} activeOpacity={0.6}>
               <Text style={styles.resetIcon}>Reset ↺</Text>
             </TouchableOpacity>
@@ -1525,15 +1531,16 @@ export default function LookupScreen() {
           <View style={styles.gridSection}>
             <Text style={styles.gridCategoryHeading}>Status</Text>
             <View style={styles.gridRow}>
-              {STATUS_OPTIONS.map(opt => (
+              {STATUS_OPTIONS.map((opt, i) => (
                 <EntityTypeTile
-                  key={opt.value}
+                  key={i}
                   label={opt.label}
                   sidc={patchSIDC(sidc, 7, opt.value)}
-                  selected={status === opt.value}
-                  onPress={() => setStatus(opt.value)}
+                  selected={status === opt.value && simpleStatusModifier === (opt.simpleStatusModifier ?? false)}
+                  onPress={() => { setStatus(opt.value); setSimpleStatusModifier(opt.simpleStatusModifier ?? false); }}
                   colorMode={colorMode}
                   fillMode={fillMode}
+                  simpleStatusModifier={opt.simpleStatusModifier ?? false}
                 />
               ))}
             </View>

@@ -910,7 +910,17 @@ function createSymbol(sidc: string, options: Record<string, unknown> = {}) {
   const modeName = typeof withBlackFix.colorMode === 'string' ? withBlackFix.colorMode : 'Light';
   const modeColors = COLOR_MODE_FILLS[modeName] ?? COLOR_MODE_FILLS.Light;
   const suspectFix = { ...modeColors, Hostile: modeColors.Suspect };
-  return new ms.Symbol(sidc, { ...withBlackFix, colorMode: suspectFix as any });
+
+  // When a custom frameColor object is provided (e.g. noFillColor / noFillNoFrame),
+  // milsymbol's joker mutation runs `baseFrameColor.Friend = baseFrameColor.Hostile`.
+  // Apply the same Hostile → Suspect redirect there so the stroke color resolves
+  // to orange rather than red.
+  const fc = withBlackFix.frameColor;
+  const frameColor = typeof fc === 'object' && fc !== null
+    ? { ...(fc as Record<string, string | false>), Hostile: (fc as Record<string, string | false>).Suspect }
+    : fc;
+
+  return new ms.Symbol(sidc, { ...withBlackFix, colorMode: suspectFix as any, frameColor });
 }
 
 // ── Search index ──────────────────────────────────────────────────────────────

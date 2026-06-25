@@ -124,16 +124,16 @@ const GROUP_STARTS: number[][] = (() => {
 
 // ── SymbolPreview ─────────────────────────────────────────────────────────────
 
-function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', simpleStatusModifier = false }: { sidc: string; colorMode?: string; fillMode?: string; simpleStatusModifier?: boolean }) {
+function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', simpleStatusModifier = false, engagementBar = '', engagementType = '' }: { sidc: string; colorMode?: string; fillMode?: string; simpleStatusModifier?: boolean; engagementBar?: string; engagementType?: string }) {
   const { svg, naturalW, naturalH } = useMemo(() => {
     try {
-      const symbol = createSymbol(sidc, { size: 100, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined });
+      const symbol = createSymbol(sidc, { size: 100, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, engagementBar: engagementBar || undefined, engagementType: engagementType || undefined });
       const { width: naturalW, height: naturalH } = symbol.getSize();
       return { svg: symbol.asSVG(), naturalW, naturalH };
     } catch {
       return { svg: null, naturalW: 0, naturalH: 0 };
     }
-  }, [sidc, colorMode, fillMode, simpleStatusModifier]);
+  }, [sidc, colorMode, fillMode, simpleStatusModifier, engagementBar, engagementType]);
 
   const MAX_W = 280, MAX_H = 200;
   const scale = naturalW && naturalH ? Math.min(MAX_W / naturalW, MAX_H / naturalH) : 1;
@@ -412,6 +412,9 @@ function EntityTypeTile({
   colorMode = 'Light',
   fillMode = 'filledFramed',
   simpleStatusModifier = false,
+  disabled = false,
+  engagementBar = '',
+  engagementType = '',
 }: {
   label: string;
   sidc: string;
@@ -420,20 +423,24 @@ function EntityTypeTile({
   colorMode?: string;
   fillMode?: string;
   simpleStatusModifier?: boolean;
+  disabled?: boolean;
+  engagementBar?: string;
+  engagementType?: string;
 }) {
   const svg = useMemo(() => {
     try {
-      return createSymbol(sidc, { size: 30, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined }).asSVG();
+      return createSymbol(sidc, { size: 30, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, engagementBar: engagementBar || undefined, engagementType: engagementType || undefined }).asSVG();
     } catch {
       return null;
     }
-  }, [sidc, colorMode, fillMode, simpleStatusModifier]);
+  }, [sidc, colorMode, fillMode, simpleStatusModifier, engagementBar, engagementType]);
 
   return (
     <TouchableOpacity
-      style={[styles.tile, selected && styles.tileSelected]}
+      style={[styles.tile, selected && styles.tileSelected, disabled && styles.tileDisabled]}
       onPress={onPress}
-      activeOpacity={0.7}
+      activeOpacity={disabled ? 1 : 0.7}
+      disabled={disabled}
     >
       <View style={styles.tileIconWrap}>
         {svg && <SvgXml xml={svg} width={40} height={40} />}
@@ -799,6 +806,13 @@ const STATUS_OPTIONS: (Option & { simpleStatusModifier?: boolean })[] = [
   { value: '5', label: 'Present/Full to Capacity' },
 ];
 
+const ENGAGEMENT_TYPE_OPTIONS: { value: string; label: string }[] = [
+  { value: '',           label: 'None' },
+  { value: 'TARGET',     label: 'Target' },
+  { value: 'NON-TARGET', label: 'Non-Target' },
+  { value: 'EXPIRED',    label: 'Expired' },
+];
+
 const HQTFFD_OPTIONS: Option[] = [
   { value: '0', label: 'Unknown' },
   { value: '1', label: 'Feint/Decoy/Dummy' },
@@ -1052,6 +1066,8 @@ export default function LookupScreen() {
   const [colorMode, setColorMode] = useState('Light');
   const [fillMode,  setFillMode]  = useState('filledFramed');
   const [simpleStatusModifier, setSimpleStatusModifier] = useState(false);
+  const [engagementBarText, setEngagementBarText] = useState('');
+  const [engagementType, setEngagementType] = useState('');
 
   function resetAll() {
     setExercise('real');
@@ -1078,6 +1094,8 @@ export default function LookupScreen() {
     setColorMode('Light');
     setFillMode('filledFramed');
     setSimpleStatusModifier(false);
+    setEngagementBarText('');
+    setEngagementType('');
   }
 
   function handleEntitySelect(v: string) {
@@ -1174,7 +1192,7 @@ export default function LookupScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
         <View>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-            <SymbolPreview sidc={sidc} colorMode={colorMode} fillMode={fillMode} simpleStatusModifier={simpleStatusModifier} />
+            <SymbolPreview sidc={sidc} colorMode={colorMode} fillMode={fillMode} simpleStatusModifier={simpleStatusModifier} engagementBar={engagementBarText} engagementType={engagementType} />
             <TouchableOpacity onPress={resetAll} style={styles.resetButton} activeOpacity={0.6}>
               <Text style={styles.resetIcon}>Reset ↺</Text>
             </TouchableOpacity>
@@ -1745,6 +1763,36 @@ export default function LookupScreen() {
             </View>
           </View>
 
+          <View style={styles.gridSection}>
+            <Text style={styles.gridCategoryHeading}>Engagement Bar</Text>
+            <TextInput
+              style={styles.engagementBarInput}
+              placeholder="Enter bar text…"
+              value={engagementBarText}
+              onChangeText={text => {
+                setEngagementBarText(text);
+                if (!text) setEngagementType('');
+              }}
+              autoCapitalize="characters"
+            />
+            <View style={[styles.gridRow, { marginTop: 12 }]}>
+              {ENGAGEMENT_TYPE_OPTIONS.map(opt => (
+                <EntityTypeTile
+                  key={opt.value || 'none'}
+                  label={opt.label}
+                  sidc={sidc}
+                  selected={engagementType === opt.value}
+                  onPress={() => setEngagementType(opt.value)}
+                  colorMode={colorMode}
+                  fillMode={fillMode}
+                  disabled={!engagementBarText}
+                  engagementBar={engagementBarText}
+                  engagementType={opt.value}
+                />
+              ))}
+            </View>
+          </View>
+
           <View style={{ marginTop: 20 }}>
             <QuestionLabel label="Q11  Is this a restricted target or no-strike entity?" onReset={() => setContext(null)} />
             <Dropdown
@@ -2020,5 +2068,15 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#11181C',
     textAlign: 'center',
+  },
+  engagementBarInput: {
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: '#11181C',
+    backgroundColor: '#fff',
   },
 });

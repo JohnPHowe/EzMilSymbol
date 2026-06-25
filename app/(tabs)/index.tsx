@@ -1210,16 +1210,18 @@ export default function LookupScreen() {
                 <Text style={styles.placeholderText}>No matches</Text>
               </View>
             ) : (
-              searchResults.map(result => (
-                <SearchResultRow
-                  key={result.key}
-                  result={result}
-                  affiliation={affiliation}
-                  onPress={() => handleSearchSelect(result)}
-                  colorMode={colorMode}
-                  fillMode={fillMode}
-                />
-              ))
+              <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled>
+                {searchResults.map(result => (
+                  <SearchResultRow
+                    key={result.key}
+                    result={result}
+                    affiliation={affiliation}
+                    onPress={() => handleSearchSelect(result)}
+                    colorMode={colorMode}
+                    fillMode={fillMode}
+                  />
+                ))}
+              </ScrollView>
             )}
           </View>
         )}
@@ -1787,6 +1789,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#fff',
     overflow: 'hidden',
+    maxHeight: 300,
     ...Platform.select({
       web: { boxShadow: '0 4px 12px rgba(0,0,0,0.1)' } as any,
       default: {

@@ -36,7 +36,8 @@ const SYMBOL_SETS: Record<Domain, Option[]> = {
   Air: [
     { value: '01', label: 'Air' },
     { value: '02', label: 'Air Missile' },
-    { value: '45', label: 'Atmospheric (Weather)' },
+    // Note: "Atmospheric (Weather)" (symbol set 45) is omitted — milsymbol has
+    // no icon data for it and it only ever renders the generic unknown glyph.
   ],
   Cyber: [
     { value: '60', label: 'Cyberspace' },
@@ -50,7 +51,8 @@ const SYMBOL_SETS: Record<Domain, Option[]> = {
   Space: [
     { value: '05', label: 'Space' },
     { value: '06', label: 'Space Missile' },
-    { value: '47', label: 'Meteorological Space' },
+    // Note: "Meteorological Space" (symbol set 47) is omitted — milsymbol has
+    // no icon data for it and it only ever renders the generic unknown glyph.
   ],
   Surface: [
     { value: '30', label: 'Sea Surface' },
@@ -58,7 +60,8 @@ const SYMBOL_SETS: Record<Domain, Option[]> = {
   Subsurface: [
     { value: '35', label: 'Sea Subsurface' },
     { value: '36', label: 'Mine Warfare' },
-    { value: '46', label: 'Oceanographic' },
+    // Note: "Oceanographic" (symbol set 46) is omitted — milsymbol has no
+    // icon data for it and it only ever renders the generic unknown glyph.
   ],
 };
 
@@ -121,16 +124,16 @@ const GROUP_STARTS: number[][] = (() => {
 
 // ── SymbolPreview ─────────────────────────────────────────────────────────────
 
-function SymbolPreview({ sidc }: { sidc: string }) {
+function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed' }: { sidc: string; colorMode?: string; fillMode?: string }) {
   const { svg, naturalW, naturalH } = useMemo(() => {
     try {
-      const symbol = createSymbol(sidc, { size: 100 });
+      const symbol = createSymbol(sidc, { size: 100, colorMode, ...getFillExtras(fillMode, colorMode) });
       const { width: naturalW, height: naturalH } = symbol.getSize();
       return { svg: symbol.asSVG(), naturalW, naturalH };
     } catch {
       return { svg: null, naturalW: 0, naturalH: 0 };
     }
-  }, [sidc]);
+  }, [sidc, colorMode, fillMode]);
 
   const MAX_W = 280, MAX_H = 200;
   const scale = naturalW && naturalH ? Math.min(MAX_W / naturalW, MAX_H / naturalH) : 1;
@@ -203,19 +206,23 @@ function AffiliationTile({
   sidc,
   selected,
   onPress,
+  colorMode = 'Light',
+  fillMode = 'filledFramed',
 }: {
   label: string;
   sidc: string;
   selected: boolean;
   onPress: () => void;
+  colorMode?: string;
+  fillMode?: string;
 }) {
   const svg = useMemo(() => {
     try {
-      return createSymbol(sidc, { size: 64 }).asSVG();
+      return createSymbol(sidc, { size: 64, colorMode, ...getFillExtras(fillMode, colorMode) }).asSVG();
     } catch {
       return null;
     }
-  }, [sidc]);
+  }, [sidc, colorMode, fillMode]);
 
   return (
     <TouchableOpacity
@@ -235,10 +242,14 @@ function AffiliationPicker({
   baseSidc,
   affiliation,
   onSelect,
+  colorMode = 'Light',
+  fillMode = 'filledFramed',
 }: {
   baseSidc: string;
   affiliation: string;
   onSelect: (v: string) => void;
+  colorMode?: string;
+  fillMode?: string;
 }) {
   return (
     <View style={styles.affiliationWrapper}>
@@ -251,6 +262,8 @@ function AffiliationPicker({
             sidc={patchSIDC(baseSidc, 4, opt.value)}
             selected={affiliation === opt.value}
             onPress={() => onSelect(opt.value)}
+            colorMode={colorMode}
+            fillMode={fillMode}
           />
         ))}
       </View>
@@ -393,19 +406,23 @@ function EntityTypeTile({
   sidc,
   selected,
   onPress,
+  colorMode = 'Light',
+  fillMode = 'filledFramed',
 }: {
   label: string;
   sidc: string;
   selected: boolean;
   onPress: () => void;
+  colorMode?: string;
+  fillMode?: string;
 }) {
   const svg = useMemo(() => {
     try {
-      return createSymbol(sidc, { size: 30 }).asSVG();
+      return createSymbol(sidc, { size: 30, colorMode, ...getFillExtras(fillMode, colorMode) }).asSVG();
     } catch {
       return null;
     }
-  }, [sidc]);
+  }, [sidc, colorMode, fillMode]);
 
   return (
     <TouchableOpacity
@@ -431,6 +448,9 @@ function EntityTypeGrid({
   selectedTypeDef,
   onSelect,
   onSelectSubtype,
+  onSelectCategory,
+  colorMode = 'Light',
+  fillMode = 'filledFramed',
 }: {
   entityData: EntityDef[];
   baseSidc: string;
@@ -441,6 +461,9 @@ function EntityTypeGrid({
   selectedTypeDef: EntityType | null;
   onSelect: (entity: string, type: string) => void;
   onSelectSubtype: (subtype: string) => void;
+  onSelectCategory: (entity: string) => void;
+  colorMode?: string;
+  fillMode?: string;
 }) {
   function tileSidc(entityVal: string, typeVal: string, subtypeVal = '00') {
     let s = patchSIDC(baseSidc, 11, entityVal);
@@ -449,6 +472,22 @@ function EntityTypeGrid({
     s = patchSIDC(s, 17, '00');
     s = patchSIDC(s, 19, '00');
     return s;
+  }
+
+  // Representative icon for a category tile: the first type (alphabetically)
+  // that actually renders, falling back to the category's own icon.
+  function categorySidc(category: EntityDef) {
+    const sortedTypes = [...category.types].sort((a, b) => a.label.localeCompare(b.label));
+    for (const type of sortedTypes) {
+      const candidate = tileSidc(category.value, type.value);
+      try {
+        createSymbol(candidate).asSVG();
+        return candidate;
+      } catch {
+        continue;
+      }
+    }
+    return tileSidc(category.value, '00');
   }
 
   // Once a type with subtypes is selected, narrow the grid to that type's subtypes (Q5).
@@ -464,6 +503,8 @@ function EntityTypeGrid({
               sidc={selectedSubtype === null ? currentSidc : tileSidc(selectedEntity, selectedType, '00')}
               selected={selectedSubtype === null}
               onPress={() => onSelectSubtype('00')}
+              colorMode={colorMode}
+              fillMode={fillMode}
             />
             {sortedSubtypes.map(subtype => {
               const isSelected = selectedSubtype === subtype.value;
@@ -474,6 +515,8 @@ function EntityTypeGrid({
                   sidc={isSelected ? currentSidc : tileSidc(selectedEntity, selectedType, subtype.value)}
                   selected={isSelected}
                   onPress={() => onSelectSubtype(subtype.value)}
+                  colorMode={colorMode}
+                  fillMode={fillMode}
                 />
               );
             })}
@@ -484,6 +527,28 @@ function EntityTypeGrid({
   }
 
   const sortedEntityData = [...entityData].sort((a, b) => a.label.localeCompare(b.label));
+
+  // More than one sub group (entity category) under this symbol set: show the
+  // sub groups themselves first, rather than flattening every type at once.
+  if (sortedEntityData.length > 1) {
+    return (
+      <View style={styles.gridSection}>
+        <View style={styles.gridRow}>
+          {sortedEntityData.map(category => (
+            <EntityTypeTile
+              key={category.value}
+              label={category.label}
+              sidc={categorySidc(category)}
+              selected={false}
+              onPress={() => onSelectCategory(category.value)}
+              colorMode={colorMode}
+              fillMode={fillMode}
+            />
+          ))}
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View>
@@ -499,6 +564,8 @@ function EntityTypeGrid({
                   sidc={selectedEntity === category.value ? currentSidc : tileSidc(category.value, '00')}
                   selected={selectedEntity === category.value}
                   onPress={() => onSelect(category.value, '00')}
+                  colorMode={colorMode}
+                  fillMode={fillMode}
                 />
               ) : (
                 sortedTypes.map(type => {
@@ -510,6 +577,8 @@ function EntityTypeGrid({
                       sidc={isSelected ? currentSidc : tileSidc(category.value, type.value)}
                       selected={isSelected}
                       onPress={() => onSelect(category.value, type.value)}
+                      colorMode={colorMode}
+                      fillMode={fillMode}
                     />
                   );
                 })
@@ -532,6 +601,10 @@ type BreadcrumbStep = {
   value: string | null;
   options: Option[];
   onSelect: (v: string) => void;
+  // True for leaf steps (e.g. Subtype) that never lead to a further step —
+  // these are excluded from the "current hierarchy" highlight, which stays
+  // on their parent (e.g. Type) instead.
+  leaf?: boolean;
 };
 
 function Breadcrumbs({
@@ -543,6 +616,10 @@ function Breadcrumbs({
   openStep: number | null;
   onToggle: (step: number) => void;
 }) {
+  // Highlight the deepest step that has been answered (the current hierarchy
+  // position), not the next step awaiting a selection.
+  const currentStep = steps.reduce((acc, s) => (s.value && !s.leaf ? s.step : acc), -1);
+
   return (
     <View style={{ marginBottom: 16 }}>
       <View style={styles.breadcrumbRow}>
@@ -553,7 +630,7 @@ function Breadcrumbs({
               <Text style={[
                 styles.breadcrumbItem,
                 s.value && styles.breadcrumbItemAnswered,
-                openStep === s.step && styles.breadcrumbItemActive,
+                currentStep === s.step && styles.breadcrumbItemActive,
               ]}>
                 {s.display ?? s.placeholder}
               </Text>
@@ -765,28 +842,75 @@ const CONTEXT_OPTIONS: Record<string, Option[]> = {
   ],
 };
 
+const COLOR_MODE_OPTIONS: { value: string; label: string }[] = [
+  { value: 'Light',    label: 'Light' },
+  { value: 'Medium',   label: 'Medium' },
+  { value: 'Dark',     label: 'Dark' },
+  { value: 'Black',    label: 'Black' },
+  { value: 'White',    label: 'White' },
+  { value: 'OffWhite', label: 'Off White' },
+];
+
+const FILL_OPTIONS: { value: string; label: string }[] = [
+  { value: 'filledFramed',  label: 'Filled + Framed' },
+  { value: 'noFillColor',   label: 'No Fill + Color' },
+  { value: 'filledNoFrame', label: 'Filled + No Frame' },
+  { value: 'noFillMono',    label: 'No Fill + Mono' },
+  { value: 'noFillNoFrame', label: 'No Fill + No Frame' },
+];
+
+function getFillExtras(fillMode: string, colorMode: string): Record<string, unknown> {
+  const modeColors = COLOR_MODE_FILLS[colorMode] ?? COLOR_MODE_FILLS.Light;
+  switch (fillMode) {
+    case 'noFillColor':   return { fill: false, frameColor: { ...modeColors } };
+    case 'filledNoFrame': return { strokeWidth: 0 };
+    case 'noFillMono':    return { monoColor: 'black' };
+    case 'noFillNoFrame': return { fill: false, frame: false, frameColor: { ...modeColors } };
+    default:              return {};
+  }
+}
+
 function patchSIDC(sidc: string, pos: number, value: string) {
   const i = pos - 1; // pos is 1-indexed
   return sidc.slice(0, i) + value + sidc.slice(i + value.length);
 }
 
-// milsymbol maps standard identity "Suspect" (digit 4 = '5') into the same
-// "Hostile" color bucket as true Hostile/Faker, and only tells them apart
-// when the SIDC version digits are '13' (which this app's SIDCs never use).
-// Override fillColor.Hostile to the real Suspect amber for just this render
-// so Suspect/Joker symbols don't show up red like actual Hostile/Faker.
-const SUSPECT_FILL_FIX = {
-  Civilian: 'rgb(255,161,255)',
-  Friend: 'rgb(128,224,255)',
-  Hostile: 'rgb(255, 229, 153)',
-  Neutral: 'rgb(170,255,170)',
-  Unknown: 'rgb(255,255,128)',
-  Suspect: 'rgb(255, 229, 153)',
+// milsymbol's "Black" colorMode sets fill to black but still draws the frame
+// and icon strokes in black (the default), making the symbol a solid blob.
+// Override frame and icon to white so "Black" renders as an inverse: white
+// lines on a black field, mirroring the "White" mode in the opposite sense.
+const ALL_WHITE_COLOR = {
+  Civilian: 'white', Friend: 'white', Hostile: 'white',
+  Neutral: 'white', Unknown: 'white', Suspect: 'white',
+};
+
+// Fill colors for each named color mode, mirroring milsymbol's colormodes.js.
+// Used to compute the Suspect/Joker fix dynamically per mode (see below).
+const COLOR_MODE_FILLS: Record<string, Record<string, string | false>> = {
+  Light:      { Civilian: 'rgb(255,161,255)', Friend: 'rgb(128,224,255)', Hostile: 'rgb(255,128,128)', Neutral: 'rgb(170,255,170)', Unknown: 'rgb(255,255,128)', Suspect: 'rgb(255,229,153)' },
+  Medium:     { Civilian: 'rgb(128,0,128)',   Friend: 'rgb(0,168,220)',   Hostile: 'rgb(255,48,49)',   Neutral: 'rgb(0,226,110)',   Unknown: 'rgb(255,255,0)',   Suspect: 'rgb(255,217,107)' },
+  Dark:       { Civilian: 'rgb(80,0,80)',     Friend: 'rgb(0,107,140)',   Hostile: 'rgb(200,0,0)',     Neutral: 'rgb(0,160,0)',     Unknown: 'rgb(225,220,0)',   Suspect: 'rgb(255,188,1)'   },
+  Black:      { Civilian: 'black',            Friend: 'black',            Hostile: 'black',            Neutral: 'black',           Unknown: 'black',            Suspect: 'black'            },
+  White:      { Civilian: 'white',            Friend: 'white',            Hostile: 'white',            Neutral: 'white',           Unknown: 'white',            Suspect: 'white'            },
+  OffWhite:   { Civilian: 'rgb(239,239,239)', Friend: 'rgb(239,239,239)', Hostile: 'rgb(239,239,239)', Neutral: 'rgb(239,239,239)',Unknown: 'rgb(239,239,239)', Suspect: 'rgb(239,239,239)' },
+  None:       { Civilian: false,              Friend: false,              Hostile: false,              Neutral: false,             Unknown: false,              Suspect: false              },
 };
 
 function createSymbol(sidc: string, options: Record<string, unknown> = {}) {
+  const withBlackFix = options.colorMode === 'Black'
+    ? { ...options, frameColor: { ...ALL_WHITE_COLOR }, iconColor: { ...ALL_WHITE_COLOR } }
+    : options;
+
   const isSuspect = sidc.charAt(3) === '5';
-  return new ms.Symbol(sidc, isSuspect ? { ...options, colorMode: SUSPECT_FILL_FIX } : options);
+  if (!isSuspect) return new ms.Symbol(sidc, withBlackFix);
+
+  // milsymbol renders Suspect/Joker using the Hostile color bucket, so
+  // suspects appear red in every mode. Redirect Hostile → the mode's own
+  // Suspect color so the fill responds correctly to the selected color mode.
+  const modeName = typeof withBlackFix.colorMode === 'string' ? withBlackFix.colorMode : 'Light';
+  const modeColors = COLOR_MODE_FILLS[modeName] ?? COLOR_MODE_FILLS.Light;
+  const suspectFix = { ...modeColors, Hostile: modeColors.Suspect };
+  return new ms.Symbol(sidc, { ...withBlackFix, colorMode: suspectFix as any });
 }
 
 // ── Search index ──────────────────────────────────────────────────────────────
@@ -866,14 +990,14 @@ const SEARCH_FUSE = new Fuse(SEARCH_INDEX, {
 
 // ── SearchResultRow ───────────────────────────────────────────────────────────
 
-function SearchResultRow({ result, affiliation, onPress }: { result: SearchResult; affiliation: string; onPress: () => void }) {
+function SearchResultRow({ result, affiliation, onPress, colorMode = 'Light', fillMode = 'filledFramed' }: { result: SearchResult; affiliation: string; onPress: () => void; colorMode?: string; fillMode?: string }) {
   const svg = useMemo(() => {
     try {
-      return createSymbol(patchSIDC(result.sidc, 4, affiliation), { size: 20 }).asSVG();
+      return createSymbol(patchSIDC(result.sidc, 4, affiliation), { size: 20, colorMode, ...getFillExtras(fillMode, colorMode) }).asSVG();
     } catch {
       return null;
     }
-  }, [result.sidc, affiliation]);
+  }, [result.sidc, affiliation, colorMode, fillMode]);
 
   return (
     <TouchableOpacity style={styles.searchResultRow} onPress={onPress} activeOpacity={0.7}>
@@ -909,6 +1033,8 @@ export default function LookupScreen() {
   const [modifier1Category, setModifier1Category] = useState<string | null>(null);
   const [modifier2Category, setModifier2Category] = useState<string | null>(null);
   const [openStep, setOpenStep]   = useState<number | null>(1);
+  const [colorMode, setColorMode] = useState('Light');
+  const [fillMode,  setFillMode]  = useState('filledFramed');
 
   function resetAll() {
     setExercise('real');
@@ -933,6 +1059,8 @@ export default function LookupScreen() {
     setModifier1Category(null);
     setModifier2Category(null);
     setOpenStep(1);
+    setColorMode('Light');
+    setFillMode('filledFramed');
   }
 
   function handleEntitySelect(v: string) {
@@ -1038,7 +1166,7 @@ export default function LookupScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
         <View>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-            <SymbolPreview sidc={sidc} />
+            <SymbolPreview sidc={sidc} colorMode={colorMode} fillMode={fillMode} />
             <TouchableOpacity onPress={resetAll} style={styles.resetButton} activeOpacity={0.6}>
               <Text style={styles.resetIcon}>Reset ↺</Text>
             </TouchableOpacity>
@@ -1048,7 +1176,7 @@ export default function LookupScreen() {
 
         <View style={styles.topDivider} />
 
-        <AffiliationPicker baseSidc={sidc} affiliation={affiliation} onSelect={setAffiliation} />
+        <AffiliationPicker baseSidc={sidc} affiliation={affiliation} onSelect={setAffiliation} colorMode={colorMode} fillMode={fillMode} />
       </View>
 
       <View style={styles.searchWrapper}>
@@ -1078,6 +1206,8 @@ export default function LookupScreen() {
                   result={result}
                   affiliation={affiliation}
                   onPress={() => handleSearchSelect(result)}
+                  colorMode={colorMode}
+                  fillMode={fillMode}
                 />
               ))
             )}
@@ -1156,6 +1286,7 @@ export default function LookupScreen() {
                 value: entitySubtype,
                 options: entityTypeDef.subtypes,
                 onSelect: (v: string) => { setEntitySubtype(v); setOpenStep(null); },
+                leaf: true,
               }] : []),
             ]}
           />
@@ -1186,6 +1317,8 @@ export default function LookupScreen() {
                     sidc={patchSIDC(sidc, 5, opt.value)}
                     selected={false}
                     onPress={() => { setSymbolSet(opt.value); setOpenStep(3); }}
+                    colorMode={colorMode}
+                    fillMode={fillMode}
                   />
                 ))}
               </View>
@@ -1201,6 +1334,8 @@ export default function LookupScreen() {
               selectedType={entityType}
               selectedSubtype={entitySubtype}
               selectedTypeDef={entityTypeDef}
+              colorMode={colorMode}
+              fillMode={fillMode}
               onSelect={(entityVal, typeVal) => {
                 setEntity(entityVal);
                 setEntityType(typeVal);
@@ -1213,6 +1348,11 @@ export default function LookupScreen() {
                 setEntitySubtype(v === '00' ? null : v);
                 setOpenStep(null);
               }}
+              onSelectCategory={v => {
+                handleEntitySelect(v);
+                const def = entityData?.find(e => e.value === v);
+                setOpenStep(def && def.types.length > 0 ? 4 : null);
+              }}
             />
           )}
         </View>
@@ -1220,17 +1360,55 @@ export default function LookupScreen() {
         <View style={styles.gridWrapper}>
           <Text style={[styles.sectionHeading, { marginBottom: 16 }]}>Other Modifiers</Text>
 
-          <View style={{ marginBottom: 24 }}>
+          <View style={styles.gridSection}>
+            <Text style={styles.gridCategoryHeading}>Color Mode</Text>
+            <View style={styles.gridRow}>
+              {COLOR_MODE_OPTIONS.map(opt => (
+                <EntityTypeTile
+                  key={opt.value}
+                  label={opt.label}
+                  sidc={sidc}
+                  colorMode={opt.value}
+                  fillMode={fillMode}
+                  selected={colorMode === opt.value}
+                  onPress={() => setColorMode(opt.value)}
+                />
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.gridSection}>
+            <Text style={styles.gridCategoryHeading}>Fill & Frame Options</Text>
+            <View style={styles.gridRow}>
+              {FILL_OPTIONS.map(opt => (
+                <EntityTypeTile
+                  key={opt.value}
+                  label={opt.label}
+                  sidc={sidc}
+                  colorMode={colorMode}
+                  fillMode={opt.value}
+                  selected={fillMode === opt.value}
+                  onPress={() => setFillMode(opt.value)}
+                />
+              ))}
+            </View>
+          </View>
+
+          <View style={{ marginTop: 20 }}>
             <View style={styles.breadcrumbRow}>
               <TouchableOpacity onPress={() => handleLevelModeSelect('0')} activeOpacity={0.7}>
-                <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered]}>Mobility & Leadership</Text>
+                <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, levelMode === '0' && styles.breadcrumbItemActive]}>Mobility & Leadership</Text>
               </TouchableOpacity>
 
               {levelMode === '1' && (
                 <>
                   <Text style={styles.breadcrumbSep}>›</Text>
                   <TouchableOpacity onPress={() => setEchelon(null)} activeOpacity={0.7}>
-                    <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, styles.breadcrumbItemActive]}>
+                    <Text style={[
+                      styles.breadcrumbItem,
+                      styles.breadcrumbItemAnswered,
+                      styles.breadcrumbItemActive,
+                    ]}>
                       {ECHELON_GROUP_OPTIONS.find(o => o.value === echelonGroup)?.label}
                     </Text>
                   </TouchableOpacity>
@@ -1239,7 +1417,10 @@ export default function LookupScreen() {
               {levelMode === '1' && echelonGroup !== '0' && (
                 <>
                   <Text style={styles.breadcrumbSep}>›</Text>
-                  <Text style={[styles.breadcrumbItem, echelon !== null ? styles.breadcrumbItemAnswered : styles.breadcrumbItemActive]}>
+                  <Text style={[
+                    styles.breadcrumbItem,
+                    echelon !== null && styles.breadcrumbItemAnswered,
+                  ]}>
                     {ECHELON_OPTIONS[echelonGroup]?.find(o => o.value === echelon)?.label ?? 'Echelon'}
                   </Text>
                 </>
@@ -1249,7 +1430,11 @@ export default function LookupScreen() {
                 <>
                   <Text style={styles.breadcrumbSep}>›</Text>
                   <TouchableOpacity onPress={() => setMobilityEchelon('0')} activeOpacity={0.7}>
-                    <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, styles.breadcrumbItemActive]}>
+                    <Text style={[
+                      styles.breadcrumbItem,
+                      styles.breadcrumbItemAnswered,
+                      styles.breadcrumbItemActive,
+                    ]}>
                       {MOBILITY_TYPE_OPTIONS.find(o => o.value === mobility)?.label}
                     </Text>
                   </TouchableOpacity>
@@ -1261,7 +1446,6 @@ export default function LookupScreen() {
                   <Text style={[
                     styles.breadcrumbItem,
                     mobilityEchelon !== '0' && styles.breadcrumbItemAnswered,
-                    mobilityEchelon === '0' && styles.breadcrumbItemActive,
                   ]}>
                     {MOBILITY_SUB_OPTIONS[mobility]?.find(o => o.value === mobilityEchelon)?.label ?? 'Type'}
                   </Text>
@@ -1305,6 +1489,8 @@ export default function LookupScreen() {
                       sidc={patchSIDC(patchSIDC(sidc, 9, echelonGroup), 10, opt.value)}
                       selected={echelon === opt.value}
                       onPress={() => setEchelon(opt.value)}
+                      colorMode={colorMode}
+                      fillMode={fillMode}
                     />
                   ))}
                 </View>
@@ -1321,6 +1507,8 @@ export default function LookupScreen() {
                       sidc={patchSIDC(patchSIDC(sidc, 9, mobility), 10, opt.value)}
                       selected={mobilityEchelon === opt.value}
                       onPress={() => setMobilityEchelon(opt.value)}
+                      colorMode={colorMode}
+                      fillMode={fillMode}
                     />
                   ))}
                 </View>
@@ -1338,6 +1526,8 @@ export default function LookupScreen() {
                   sidc={patchSIDC(sidc, 7, opt.value)}
                   selected={status === opt.value}
                   onPress={() => setStatus(opt.value)}
+                  colorMode={colorMode}
+                  fillMode={fillMode}
                 />
               ))}
             </View>
@@ -1347,7 +1537,7 @@ export default function LookupScreen() {
             <View style={styles.gridSection}>
               <View style={[styles.breadcrumbRow, { marginBottom: 12 }]}>
                 <TouchableOpacity onPress={() => setModifier1Category(null)} activeOpacity={0.7}>
-                  <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered]}>Sector 1 Modifiers</Text>
+                  <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, modifier1Category === null && styles.breadcrumbItemActive]}>Sector 1 Modifiers</Text>
                 </TouchableOpacity>
                 {modifier1Category !== null && (
                   <>
@@ -1369,6 +1559,8 @@ export default function LookupScreen() {
                         sidc={patchSIDC(patchSIDC(sidc, 17, firstDimensionMod.value), 21, '0')}
                         selected={false}
                         onPress={() => setModifier1Category(DIMENSION_GROUP)}
+                        colorMode={colorMode}
+                        fillMode={fillMode}
                       />
                     );
                   })()}
@@ -1381,6 +1573,8 @@ export default function LookupScreen() {
                         sidc={patchSIDC(patchSIDC(sidc, 17, firstInCat.value), 21, '1')}
                         selected={false}
                         onPress={() => setModifier1Category(cat)}
+                        colorMode={colorMode}
+                        fillMode={fillMode}
                       />
                     );
                   })}
@@ -1394,6 +1588,8 @@ export default function LookupScreen() {
                       sidc={patchSIDC(patchSIDC(sidc, 17, opt.value), 21, '0')}
                       selected={!modifier1Common && (modifier1 ?? '00') === opt.value}
                       onPress={() => { setModifier1(opt.value); setModifier1Common(false); }}
+                      colorMode={colorMode}
+                      fillMode={fillMode}
                     />
                   ))}
                 </View>
@@ -1409,6 +1605,8 @@ export default function LookupScreen() {
                         sidc={patchSIDC(patchSIDC(sidc, 17, opt.value), 21, '1')}
                         selected={modifier1Common && modifier1 === opt.value}
                         onPress={() => { setModifier1(opt.value); setModifier1Common(true); }}
+                        colorMode={colorMode}
+                        fillMode={fillMode}
                       />
                     ))}
                 </View>
@@ -1420,7 +1618,7 @@ export default function LookupScreen() {
             <View style={styles.gridSection}>
               <View style={[styles.breadcrumbRow, { marginBottom: 12 }]}>
                 <TouchableOpacity onPress={() => setModifier2Category(null)} activeOpacity={0.7}>
-                  <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered]}>Sector 2 Modifiers</Text>
+                  <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, modifier2Category === null && styles.breadcrumbItemActive]}>Sector 2 Modifiers</Text>
                 </TouchableOpacity>
                 {modifier2Category !== null && (
                   <>
@@ -1442,6 +1640,8 @@ export default function LookupScreen() {
                         sidc={patchSIDC(patchSIDC(sidc, 19, firstDimensionMod.value), 22, '0')}
                         selected={false}
                         onPress={() => setModifier2Category(DIMENSION_GROUP)}
+                        colorMode={colorMode}
+                        fillMode={fillMode}
                       />
                     );
                   })()}
@@ -1454,6 +1654,8 @@ export default function LookupScreen() {
                         sidc={patchSIDC(patchSIDC(sidc, 19, firstInCat.value), 22, '1')}
                         selected={false}
                         onPress={() => setModifier2Category(cat)}
+                        colorMode={colorMode}
+                        fillMode={fillMode}
                       />
                     );
                   })}
@@ -1467,6 +1669,8 @@ export default function LookupScreen() {
                       sidc={patchSIDC(patchSIDC(sidc, 19, opt.value), 22, '0')}
                       selected={!modifier2Common && (modifier2 ?? '00') === opt.value}
                       onPress={() => { setModifier2(opt.value); setModifier2Common(false); }}
+                      colorMode={colorMode}
+                      fillMode={fillMode}
                     />
                   ))}
                 </View>
@@ -1482,6 +1686,8 @@ export default function LookupScreen() {
                         sidc={patchSIDC(patchSIDC(sidc, 19, opt.value), 22, '1')}
                         selected={modifier2Common && modifier2 === opt.value}
                         onPress={() => { setModifier2(opt.value); setModifier2Common(true); }}
+                        colorMode={colorMode}
+                        fillMode={fillMode}
                       />
                     ))}
                 </View>
@@ -1502,6 +1708,8 @@ export default function LookupScreen() {
                   sidc={patchSIDC(sidc, 8, opt.value)}
                   selected={hqtffd === opt.value}
                   onPress={() => setHqtffd(opt.value)}
+                  colorMode={colorMode}
+                  fillMode={fillMode}
                 />
               ))}
             </View>
@@ -1517,19 +1725,23 @@ export default function LookupScreen() {
                   sidc={patchSIDC(sidc, 3, EXERCISE_CONTEXT_BASELINE[opt.value] ?? '0')}
                   selected={exercise === opt.value}
                   onPress={() => handleExerciseSelect(opt.value)}
+                  colorMode={colorMode}
+                  fillMode={fillMode}
                 />
               ))}
             </View>
           </View>
 
-          <QuestionLabel label="Q11  Is this a restricted target or no-strike entity?" onReset={() => setContext(null)} />
-          <Dropdown
-            placeholder="Select a context…"
-            options={CONTEXT_OPTIONS[exercise]}
-            value={context}
-            onSelect={setContext}
-            zIndex={3}
-          />
+          <View style={{ marginTop: 20 }}>
+            <QuestionLabel label="Q11  Is this a restricted target or no-strike entity?" onReset={() => setContext(null)} />
+            <Dropdown
+              placeholder="Select a context…"
+              options={CONTEXT_OPTIONS[exercise]}
+              value={context}
+              onSelect={setContext}
+              zIndex={3}
+            />
+          </View>
         </View>
 
         <SIDCDisplay sidc={sidc} />

@@ -127,7 +127,7 @@ const GROUP_STARTS: number[][] = (() => {
 function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', simpleStatusModifier = false, engagementBar = '', engagementType = '' }: { sidc: string; colorMode?: string; fillMode?: string; simpleStatusModifier?: boolean; engagementBar?: string; engagementType?: string }) {
   const { svg, naturalW, naturalH } = useMemo(() => {
     try {
-      const symbol = createSymbol(sidc, { size: 100, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, engagementBar: engagementBar || undefined, engagementType: engagementType || undefined });
+      const symbol = createSymbol(sidc, { size: 100, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, ...(engagementBar && { engagementBar }), ...(engagementType && { engagementType }) });
       const { width: naturalW, height: naturalH } = symbol.getSize();
       return { svg: symbol.asSVG(), naturalW, naturalH };
     } catch {
@@ -429,7 +429,7 @@ function EntityTypeTile({
 }) {
   const svg = useMemo(() => {
     try {
-      return createSymbol(sidc, { size: 30, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, engagementBar: engagementBar || undefined, engagementType: engagementType || undefined }).asSVG();
+      return createSymbol(sidc, { size: 30, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, ...(engagementBar && { engagementBar }), ...(engagementType && { engagementType }) }).asSVG();
     } catch {
       return null;
     }

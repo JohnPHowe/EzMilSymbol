@@ -1,3 +1,4 @@
+import { ALIASES, type Alias } from '@/assets/data/aliases';
 import { ENTITY_OPTIONS, type EntityDef, type EntityType } from '@/assets/data/entityOptions';
 import { COMMON_MODIFIER1_OPTIONS, COMMON_MODIFIER2_OPTIONS, MODIFIER1_OPTIONS, MODIFIER2_OPTIONS } from '@/assets/data/modifierOptions';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
@@ -905,6 +906,7 @@ const ALL_WHITE_COLOR = {
   Neutral: 'white', Unknown: 'white', Suspect: 'white',
 };
 
+
 // Fill colors for each named color mode, mirroring milsymbol's colormodes.js.
 // Used to compute the Suspect/Joker fix dynamically per mode (see below).
 const COLOR_MODE_FILLS: Record<string, Record<string, string | false>> = {
@@ -942,6 +944,25 @@ function createSymbol(sidc: string, options: Record<string, unknown> = {}) {
     : fc;
 
   return new ms.Symbol(sidc, { ...withBlackFix, colorMode: suspectFix as any, frameColor });
+}
+
+// ── Dynamic alias persistence ─────────────────────────────────────────────────
+
+function loadDynamicAliases(): Alias[] {
+  if (Platform.OS !== 'web') return [];
+  try {
+    const raw = localStorage.getItem('milsymbol-aliases');
+    return raw ? (JSON.parse(raw) as Alias[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveDynamicAliases(aliases: Alias[]) {
+  if (Platform.OS !== 'web') return;
+  try {
+    localStorage.setItem('milsymbol-aliases', JSON.stringify(aliases));
+  } catch {}
 }
 
 // ── Search index ──────────────────────────────────────────────────────────────
@@ -1010,6 +1031,21 @@ const SEARCH_INDEX: SearchResult[] = (() => {
   return items;
 })();
 
+ALIASES.forEach(a => {
+  SEARCH_INDEX.push({
+    key: `alias-${a.alias.toLowerCase()}`,
+    domain: a.domain as Domain,
+    symbolSet: a.symbolSet,
+    symbolSetLabel: a.symbolSetLabel,
+    entity: a.entity,
+    entityType: a.entityType,
+    entitySubtype: a.entitySubtype,
+    pathLabel: `${a.alias} → ${a.targetLabel}`,
+    leafLabel: a.alias,
+    sidc: buildSearchSidc(a.symbolSet, a.entity, a.entityType ?? '00', a.entitySubtype ?? '00'),
+  });
+});
+
 const SEARCH_FUSE = new Fuse(SEARCH_INDEX, {
   keys: [
     { name: 'leafLabel', weight: 0.6 },
@@ -1068,6 +1104,8 @@ export default function LookupScreen() {
   const [simpleStatusModifier, setSimpleStatusModifier] = useState(false);
   const [engagementBarText, setEngagementBarText] = useState('');
   const [engagementType, setEngagementType] = useState('');
+  const [aliasText, setAliasText] = useState('');
+  const [dynamicAliases, setDynamicAliases] = useState<Alias[]>(loadDynamicAliases);
 
   function resetAll() {
     setExercise('real');
@@ -1180,14 +1218,84 @@ export default function LookupScreen() {
   const entityDef     = entity !== null && entityData !== null ? (entityData.find(e => e.value === entity) ?? null) : null;
   const entityTypeDef = entityType !== null && entityDef !== null ? (entityDef.types.find(t => t.value === entityType) ?? null) : null;
 
-  const searchResults = useMemo(
-    () => query.trim().length > 0 ? SEARCH_FUSE.search(query.trim()).slice(0, 20).map(r => r.item) : [],
-    [query]
-  );
+  const dynamicFuse = useMemo(() => {
+    const items: SearchResult[] = dynamicAliases.map(a => ({
+      key: `dyn-alias-${a.alias.toLowerCase()}`,
+      domain: a.domain as Domain,
+      symbolSet: a.symbolSet,
+      symbolSetLabel: a.symbolSetLabel,
+      entity: a.entity,
+      entityType: a.entityType,
+      entitySubtype: a.entitySubtype,
+      pathLabel: `${a.alias} → ${a.targetLabel}`,
+      leafLabel: a.alias,
+      sidc: buildSearchSidc(a.symbolSet, a.entity, a.entityType ?? '00', a.entitySubtype ?? '00'),
+    }));
+    return new Fuse(items, { keys: [{ name: 'leafLabel', weight: 0.6 }, { name: 'pathLabel', weight: 0.4 }], threshold: 0.35, ignoreLocation: true });
+  }, [dynamicAliases]);
+
+  const searchResults = useMemo(() => {
+    const q = query.trim();
+    if (!q) return [];
+    const staticHits = SEARCH_FUSE.search(q).map(r => r.item);
+    const dynamicHits = dynamicFuse.search(q).map(r => r.item);
+    const seen = new Set(staticHits.map(r => r.key));
+    return [...staticHits, ...dynamicHits.filter(r => !seen.has(r.key))].slice(0, 20);
+  }, [query, dynamicFuse]);
+
+  function handleAddAlias() {
+    const name = aliasText.trim();
+    if (!domain || !symbolSet || !entity || !name) return;
+    const subtypeDef = entityTypeDef?.subtypes.find(s => s.value === entitySubtype);
+    const pathParts = [
+      `${domain} › ${symbolSetLabel ?? symbolSet}`,
+      entityDef?.label,
+      entityTypeDef?.label,
+      subtypeDef?.label,
+    ].filter((p): p is string => Boolean(p));
+    const newAlias: Alias = {
+      alias: name,
+      domain,
+      symbolSet,
+      symbolSetLabel: symbolSetLabel ?? symbolSet,
+      entity,
+      entityType,
+      entitySubtype,
+      targetLabel: pathParts.join(' › '),
+    };
+    const updated = [...dynamicAliases, newAlias];
+    setDynamicAliases(updated);
+    saveDynamicAliases(updated);
+    setAliasText('');
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Text style={styles.heading}>Symbol Lookup</Text>
+      <View style={styles.headingRow}>
+        <Text style={styles.heading}>Symbol Lookup</Text>
+        <View style={styles.aliasControls}>
+          <Text style={styles.aliasLabel}>Alias</Text>
+          <TextInput
+            style={styles.aliasInput}
+            placeholder="Name…"
+            placeholderTextColor="#999"
+            value={aliasText}
+            onChangeText={setAliasText}
+            autoCorrect={false}
+            autoCapitalize="words"
+            returnKeyType="done"
+            onSubmitEditing={handleAddAlias}
+          />
+          <TouchableOpacity
+            style={[styles.aliasButton, (!entity || !aliasText.trim()) && styles.aliasButtonDisabled]}
+            onPress={handleAddAlias}
+            disabled={!entity || !aliasText.trim()}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.aliasButtonText}>Add</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
         <View>
@@ -1815,12 +1923,53 @@ export default function LookupScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  heading: {
-    fontSize: 22,
-    fontWeight: '700',
+  headingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 8,
+  },
+  heading: {
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  aliasControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginLeft: 'auto' as any,
+    display: 'none',
+  },
+  aliasLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#687076',
+  },
+  aliasInput: {
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: Platform.OS === 'ios' ? 8 : 6,
+    fontSize: 13,
+    color: '#11181C',
+    width: 160,
+    backgroundColor: '#fff',
+  },
+  aliasButton: {
+    backgroundColor: '#0a7ea4',
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'ios' ? 8 : 7,
+  },
+  aliasButtonDisabled: {
+    backgroundColor: '#D1D5DB',
+  },
+  aliasButtonText: {
+    fontSize: 13,
+    color: '#fff',
+    fontWeight: '600',
   },
   searchWrapper: { paddingHorizontal: 16, paddingBottom: 16 },
   search: {

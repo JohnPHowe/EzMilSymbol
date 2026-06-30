@@ -1093,6 +1093,7 @@ export default function LookupScreen() {
   const [entity,        setEntity]        = useState<string | null>(null);
   const [entityType,    setEntityType]    = useState<string | null>(null);
   const [entitySubtype, setEntitySubtype] = useState<string | null>(null);
+  const [mineVariant,   setMineVariant]   = useState<string | null>(null);
   const [modifier1, setModifier1] = useState<string | null>(null);
   const [modifier2, setModifier2] = useState<string | null>(null);
   const [modifier1Common, setModifier1Common] = useState(false);
@@ -1148,11 +1149,11 @@ export default function LookupScreen() {
     setOpenStep(prev => prev === step ? null : step);
     if (step === 0) {
       setDomain(null); setSymbolSet(null); setEntity(null); setEntityType(null); setEntitySubtype(null);
-      setModifier1(null); setModifier2(null); setMobility(null); setMobilityEchelon('0');
+      setMineVariant(null); setModifier1(null); setModifier2(null); setMobility(null); setMobilityEchelon('0');
       setEchelonGroup('0'); setEchelon(null);
     } else if (step === 1) {
       setSymbolSet(null); setEntity(null); setEntityType(null); setEntitySubtype(null);
-      setModifier1(null); setModifier2(null); setMobility(null); setMobilityEchelon('0');
+      setMineVariant(null); setModifier1(null); setModifier2(null); setMobility(null); setMobilityEchelon('0');
       setEchelonGroup('0'); setEchelon(null);
     } else if (step === 2) {
       setEntity(null); setEntityType(null); setEntitySubtype(null);
@@ -1169,6 +1170,11 @@ export default function LookupScreen() {
     setSymbolSet(result.symbolSet);
     if (result.symbolSet !== '15' && result.symbolSet !== '35') { setMobility(null); setMobilityEchelon('0'); }
     if (result.symbolSet !== '27') { setEchelonGroup('0'); setEchelon(null); }
+    if (result.symbolSet === '36') {
+      setMineVariant(parseInt(result.entity ?? '0') >= 15 ? 'alternative' : 'MEDAL');
+    } else {
+      setMineVariant(null);
+    }
     setEntity(result.entity);
     setEntityType(result.entityType);
     setEntitySubtype(result.entitySubtype);
@@ -1210,6 +1216,7 @@ export default function LookupScreen() {
     setEntity(null);
     setEntityType(null);
     setEntitySubtype(null);
+    setMineVariant(null);
     setModifier1(null);
     setModifier2(null);
   }
@@ -1219,7 +1226,13 @@ export default function LookupScreen() {
   const disabledMobilityValues = mobilityEnabled
     ? symbolSet === '35' ? new Set(['3', '4', '5']) : new Set(['6'])
     : new Set<string>();
-  const entityData    = symbolSet !== null ? (ENTITY_OPTIONS[symbolSet] ?? null) : null;
+  const allEntityData = symbolSet !== null ? (ENTITY_OPTIONS[symbolSet] ?? null) : null;
+  const entityData    = symbolSet === '36'
+    ? mineVariant === null ? null
+      : mineVariant === 'MEDAL'
+      ? (allEntityData?.filter(e => parseInt(e.value) <= 14) ?? null)
+      : (allEntityData?.filter(e => parseInt(e.value) >= 15) ?? null)
+    : allEntityData;
   const entityDef     = entity !== null && entityData !== null ? (entityData.find(e => e.value === entity) ?? null) : null;
   const entityTypeDef = entityType !== null && entityDef !== null ? (entityDef.types.find(t => t.value === entityType) ?? null) : null;
 
@@ -1390,13 +1403,13 @@ export default function LookupScreen() {
                 options: SYMBOL_SETS[domain],
                 onSelect: (v: string) => {
                   setSymbolSet(v); setEntity(null); setEntityType(null); setEntitySubtype(null);
-                  setModifier1(null); setModifier2(null);
+                  setMineVariant(null); setModifier1(null); setModifier2(null);
                   if (v !== '15' && v !== '35') { setMobility(null); setMobilityEchelon('0'); }
                   if (v !== '27') { setEchelonGroup('0'); setEchelon(null); }
                   setOpenStep(3);
                 },
               }] : []),
-              ...(symbolSet !== null ? [{
+              ...(symbolSet !== null && (symbolSet !== '36' || mineVariant !== null) ? [{
                 step: 3,
                 label: 'Entity',
                 display: entityDef?.label ?? null,
@@ -1466,6 +1479,49 @@ export default function LookupScreen() {
                   />
                 ))}
               </View>
+            </View>
+          )}
+
+          {symbolSet === '36' && (
+            <View style={styles.gridSection}>
+              <View style={[styles.breadcrumbRow, { marginBottom: 12 }]}>
+                <TouchableOpacity
+                  onPress={() => { setMineVariant(null); setEntity(null); setEntityType(null); setEntitySubtype(null); }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, mineVariant === null && styles.breadcrumbItemActive]}>
+                    Mine Warfare
+                  </Text>
+                </TouchableOpacity>
+                {mineVariant !== null && (
+                  <>
+                    <Text style={styles.breadcrumbSep}>›</Text>
+                    <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, styles.breadcrumbItemActive]}>
+                      {mineVariant === 'MEDAL' ? 'MEDAL' : 'Alternative'}
+                    </Text>
+                  </>
+                )}
+              </View>
+              {mineVariant === null && (
+                <View style={styles.gridRow}>
+                  <EntityTypeTile
+                    label="MEDAL"
+                    sidc={patchSIDC(sidc, 11, '11')}
+                    selected={false}
+                    onPress={() => setMineVariant('MEDAL')}
+                    colorMode={colorMode}
+                    fillMode={fillMode}
+                  />
+                  <EntityTypeTile
+                    label="Alternative"
+                    sidc={patchSIDC(sidc, 11, '15')}
+                    selected={false}
+                    onPress={() => setMineVariant('alternative')}
+                    colorMode={colorMode}
+                    fillMode={fillMode}
+                  />
+                </View>
+              )}
             </View>
           )}
 

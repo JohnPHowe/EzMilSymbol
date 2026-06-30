@@ -22,7 +22,7 @@ import { SvgXml } from 'react-native-svg';
 type Domain = 'Activities' | 'Air' | 'Cyber' | 'Land' | 'Space' | 'Surface' | 'Subsurface';
 type Option = { label: string; value: string };
 
-const DOMAINS: Domain[] = ['Activities', 'Air', 'Cyber', 'Land', 'Space', 'Subsurface', 'Surface'];
+const DOMAINS: Domain[] = ['Activities', 'Air', 'Cyber', 'Land', 'Space', 'Subsurface', 'Surface'] as const;
 
 const DOMAIN_ICONS: Record<Domain, ComponentProps<typeof FontAwesome6>['name']> = {
   Activities: 'exclamation',

@@ -1149,9 +1149,11 @@ export default function LookupScreen() {
     if (step === 0) {
       setDomain(null); setSymbolSet(null); setEntity(null); setEntityType(null); setEntitySubtype(null);
       setModifier1(null); setModifier2(null); setMobility(null); setMobilityEchelon('0');
+      setEchelonGroup('0'); setEchelon(null);
     } else if (step === 1) {
       setSymbolSet(null); setEntity(null); setEntityType(null); setEntitySubtype(null);
       setModifier1(null); setModifier2(null); setMobility(null); setMobilityEchelon('0');
+      setEchelonGroup('0'); setEchelon(null);
     } else if (step === 2) {
       setEntity(null); setEntityType(null); setEntitySubtype(null);
       setModifier1(null); setModifier2(null);
@@ -1166,6 +1168,7 @@ export default function LookupScreen() {
     setDomain(result.domain);
     setSymbolSet(result.symbolSet);
     if (result.symbolSet !== '15' && result.symbolSet !== '35') { setMobility(null); setMobilityEchelon('0'); }
+    if (result.symbolSet !== '27') { setEchelonGroup('0'); setEchelon(null); }
     setEntity(result.entity);
     setEntityType(result.entityType);
     setEntitySubtype(result.entitySubtype);
@@ -1203,6 +1206,7 @@ export default function LookupScreen() {
     setDomain(d);
     setSymbolSet(null);
     setMobility(null); setMobilityEchelon('0');
+    setEchelonGroup('0'); setEchelon(null);
     setEntity(null);
     setEntityType(null);
     setEntitySubtype(null);

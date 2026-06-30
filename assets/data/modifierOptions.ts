@@ -153,7 +153,7 @@ export const MODIFIER1_OPTIONS: Record<string, ModOption[]> = {
     { value: '19', label: 'Helicopter-Equipped' },
     { value: '20', label: 'Ballistic Missile Defense, Shooter' },
   ],
-  '35': [ // Sea Subsurface
+  '35': [ // Sea Subsurface (source: milsymbol subsurface.js sIdm1)
     { value: '01', label: 'Anti-Submarine Warfare' },
     { value: '02', label: 'Auxiliary' },
     { value: '03', label: 'Command and Control' },
@@ -166,6 +166,16 @@ export const MODIFIER1_OPTIONS: Record<string, ModOption[]> = {
     { value: '10', label: 'Guided Missile' },
     { value: '11', label: 'Other Guided Missiles (Point Defense)' },
     { value: '12', label: 'Special Operations Force' },
+    { value: '13', label: 'Possible Submarine - Low 1' },
+    { value: '14', label: 'Possible Submarine - Low 2' },
+    { value: '15', label: 'Possible Submarine - High 3' },
+    { value: '16', label: 'Possible Submarine - High 4' },
+    { value: '17', label: 'Probable Submarine' },
+    { value: '18', label: 'Certain Submarine' },
+    { value: '19', label: 'Anti-Torpedo Torpedo' },
+    { value: '20', label: 'Hijacking/Hijacked' },
+    { value: '21', label: 'Hijacker' },
+    { value: '22', label: 'Cyberspace' },
   ],
   '02': [ // Air Missile (source: milsymbol airmissile.js sIdm1)
     { value: '01', label: 'Air' },

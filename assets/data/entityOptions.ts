@@ -995,10 +995,12 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
       ]},
       { value: '02', label: 'Other Submersible', subtypes: [] },
       { value: '03', label: 'Non-Submarine', subtypes: [] },
+      { value: '04', label: 'Autonomous/Unmanned Underwater Vehicle (AUV/UUV)', subtypes: [] },
       { value: '05', label: 'Diver', subtypes: [] },
     ]},
     { value: '12', label: 'Civilian', types: [
       { value: '01', label: 'Submersible', subtypes: [] },
+      { value: '02', label: 'Autonomous/Unmanned Underwater Vehicle (AUV/UUV)', subtypes: [] },
       { value: '03', label: 'Diver', subtypes: [] },
     ]},
     { value: '13', label: 'Underwater Weapon', types: [
@@ -1006,7 +1008,11 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
       { value: '02', label: 'Improvised Explosive Device (IED)', subtypes: [] },
       { value: '03', label: 'Underwater Decoy', subtypes: [] },
     ]},
+    { value: '14', label: 'Echo Tracker Classifier (ETC)/Possible Contact', types: [] },
+    { value: '15', label: 'Fused Track', types: [] },
+    { value: '16', label: 'Manual Track', types: [] },
     { value: '20', label: 'Seabed Installation (Military)', types: [] },
+    { value: '21', label: 'Seabed Installation (Non-Military)', types: [] },
   ],
 
   // ── Mine Warfare (symbolSet "36") ───────────────────────────────────────────

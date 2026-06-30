@@ -1049,6 +1049,27 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
       { value: '03', label: 'Floating', subtypes: [] },
       { value: '04', label: 'Rising', subtypes: [] },
     ]},
+    { value: '15', label: 'Mine-Like Exploitable Contact (MILEC)', types: [
+      { value: '01', label: 'Bottom', subtypes: [] },
+      { value: '02', label: 'Moored', subtypes: [] },
+      { value: '03', label: 'Floating', subtypes: [] },
+    ]},
+    { value: '16', label: 'Negative Reacquisition', types: [
+      { value: '01', label: 'Bottom', subtypes: [] },
+      { value: '02', label: 'Moored', subtypes: [] },
+      { value: '03', label: 'Floating', subtypes: [] },
+    ]},
+    { value: '17', label: 'General Obstructor', types: [
+      { value: '01', label: 'Neutralized', subtypes: [] },
+    ]},
+    { value: '18', label: 'Mine Anchor', types: [] },
+    { value: '19', label: 'Non-Mine Mine-Like Contact', types: [
+      { value: '01', label: 'Bottom', subtypes: [] },
+      { value: '02', label: 'Moored', subtypes: [] },
+      { value: '03', label: 'Floating', subtypes: [] },
+    ]},
+    { value: '20', label: 'Environmental Report Location', types: [] },
+    { value: '21', label: 'Dive Report Location', types: [] },
   ],
 
   // ── Dismounted Individuals (symbolSet "27") ──────────────────────────────────

@@ -48,6 +48,7 @@ const SYMBOL_SETS: Record<Domain, Option[]> = {
     { value: '11', label: 'Land Civilian Unit/Organization' },
     { value: '15', label: 'Land Equipment' },
     { value: '20', label: 'Land Installation' },
+    { value: '27', label: 'Dismounted Individuals' },
   ],
   Space: [
     { value: '05', label: 'Space' },
@@ -1567,6 +1568,7 @@ export default function LookupScreen() {
                       icon={opt.value === '1' ? 'x' : opt.value === '7' ? 'chevron-up' : undefined}
                       svg={opt.value === '2' ? DIVISION_XX_SVG : undefined}
                       selected={false}
+                      disabled={opt.value === '7' && symbolSet !== '27'}
                       onPress={() => { setEchelonGroup(opt.value); setEchelon(null); setMobility(null); setMobilityEchelon('0'); }}
                     />
                   ))}

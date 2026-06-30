@@ -1044,4 +1044,72 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
       { value: '04', label: 'Rising', subtypes: [] },
     ]},
   ],
+
+  // ── Dismounted Individuals (symbolSet "27") ──────────────────────────────────
+  // Source: node_modules/milsymbol/src/numbersidc/sidc/dismountedindividual.js
+  '27': [
+    {
+      value: '11', label: 'Military', types: [
+        { value: '01', label: 'Role', subtypes: [
+          { value: '01', label: 'Infantry Dismounted' },
+          { value: '02', label: 'Medical' },
+          { value: '03', label: 'Reconnaissance Dismounted' },
+          { value: '04', label: 'Signal Dismounted' },
+        ]},
+        { value: '02', label: 'Function', subtypes: [
+          { value: '01', label: 'Explosive Ordnance Disposal' },
+          { value: '02', label: 'Field Artillery Observer' },
+          { value: '03', label: 'Joint Fire Support' },
+          { value: '04', label: 'Liaison' },
+          { value: '05', label: 'Messenger' },
+          { value: '06', label: 'Military Police' },
+          { value: '07', label: 'Observer/Observation' },
+          { value: '08', label: 'Security' },
+          { value: '09', label: 'Sniper' },
+          { value: '10', label: 'Special Operations Forces' },
+          { value: '11', label: 'Designated Marksman' },
+          { value: '12', label: 'Medic' },
+          { value: '13', label: 'Signal Dismounted' },
+          { value: '14', label: 'Reconnaissance Dismounted' },
+          { value: '15', label: 'Infantry Dismounted' },
+          { value: '16', label: 'Close Protection' },
+          { value: '17', label: 'Crowd and Riot Control' },
+          { value: '18', label: 'Special Weapons and Tactics (SWAT)' },
+          { value: '19', label: 'Demolition' },
+          { value: '20', label: 'Commander (CDR)' },
+          { value: '21', label: 'Second in Command (SIC)' },
+        ]},
+        { value: '03', label: 'Armed', subtypes: [
+          { value: '01', label: 'Rifle' },
+          { value: '02', label: 'Rifle, Short Range' },
+          { value: '03', label: 'Rifle, Intermediate Range' },
+          { value: '04', label: 'Rifle, Long Range' },
+          { value: '05', label: 'Machine Gun' },
+          { value: '06', label: 'Machine Gun, Short Range' },
+          { value: '07', label: 'Machine Gun, Intermediate Range' },
+          { value: '08', label: 'Machine Gun, Long Range' },
+          { value: '09', label: 'Grenade Launcher' },
+          { value: '10', label: 'Grenade Launcher, Short Range' },
+          { value: '11', label: 'Grenade Launcher, Intermediate Range' },
+          { value: '12', label: 'Grenade Launcher, Long Range' },
+          { value: '13', label: 'Flame Thrower' },
+          { value: '14', label: 'Mortar' },
+          { value: '15', label: 'Single Rocket Launcher' },
+          { value: '16', label: 'Antitank Rocket Launcher' },
+        ]},
+        { value: '04', label: 'Non-Lethal Armed', subtypes: [
+          { value: '01', label: 'Non-Lethal Weapon' },
+          { value: '02', label: 'Non-Lethal Grenade Launcher' },
+          { value: '03', label: 'Taser' },
+        ]},
+      ],
+    },
+    {
+      value: '12', label: 'Civilian', types: [
+        { value: '01', label: 'Law Enforcement', subtypes: [
+          { value: '01', label: 'Law Enforcement' },
+        ]},
+      ],
+    },
+  ],
 };

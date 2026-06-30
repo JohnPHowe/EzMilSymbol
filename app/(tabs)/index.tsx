@@ -1388,6 +1388,7 @@ export default function LookupScreen() {
                   setSymbolSet(v); setEntity(null); setEntityType(null); setEntitySubtype(null);
                   setModifier1(null); setModifier2(null);
                   if (v !== '15' && v !== '35') { setMobility(null); setMobilityEchelon('0'); }
+                  if (v !== '27') { setEchelonGroup('0'); setEchelon(null); }
                   setOpenStep(3);
                 },
               }] : []),

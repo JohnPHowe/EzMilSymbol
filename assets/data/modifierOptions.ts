@@ -306,6 +306,30 @@ export const MODIFIER1_OPTIONS: Record<string, ModOption[]> = {
     { value: '54', label: 'Brigade' },
     { value: '55', label: 'Division' },
   ],
+  '40': [ // Activity/Event (source: node_modules/milsymbol/src/numbersidc/sidc/activites.js sIdm1)
+    { value: '01', label: 'Assassination' },
+    { value: '02', label: 'Execution (Wrongful Killing)' },
+    { value: '03', label: 'Hijacking/Hijacked' },
+    { value: '04', label: 'House-to-House' },
+    { value: '05', label: 'Kidnapping' },
+    { value: '06', label: 'Murder' },
+    { value: '07', label: 'Piracy' },
+    { value: '08', label: 'Rape' },
+    { value: '09', label: 'Written Psychological Operations' },
+    { value: '10', label: 'Pirate' },
+    { value: '11', label: 'False' },
+    { value: '12', label: 'Find' },
+    { value: '13', label: 'Found and Cleared' },
+    { value: '14', label: 'Hoax (Decoy)' },
+    { value: '15', label: 'Attempted' },
+    { value: '16', label: 'Accident' },
+    { value: '17', label: 'Incident' },
+    { value: '18', label: 'Theft' },
+    { value: '19', label: 'Hijacker' },
+    { value: '20', label: 'Cyberspace' },
+    { value: '21', label: 'Eviction' },
+    { value: '22', label: 'Raid' },
+  ],
 };
 
 export const MODIFIER2_OPTIONS: Record<string, ModOption[]> = {
@@ -572,6 +596,10 @@ export const MODIFIER2_OPTIONS: Record<string, ModOption[]> = {
     { value: '37', label: 'WO-4' },
     { value: '38', label: 'WO-5' },
     { value: '39', label: 'Ski' },
+  ],
+  '40': [ // Activity/Event (source: node_modules/milsymbol/src/numbersidc/sidc/activites.js sIdm2)
+    { value: '01', label: 'Cyberspace' },
+    { value: '02', label: 'Security Force Assistance' },
   ],
 };
 

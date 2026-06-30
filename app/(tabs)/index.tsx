@@ -1359,7 +1359,7 @@ export default function LookupScreen() {
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <View>
-          <Text style={[styles.sectionHeading, { marginBottom: 16 }]}>Entity Discovery</Text>
+          <Text style={[styles.sectionHeading, { marginBottom: 16 }]}>Symbol Discovery</Text>
           <Breadcrumbs
             openStep={openStep}
             onToggle={handleBreadcrumbToggle}

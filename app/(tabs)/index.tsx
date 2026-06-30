@@ -17,7 +17,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
-// ── Domain / Sub-domain ───────────────────────────────────────────────────────
+// ── Domain / Symbol Set ───────────────────────────────────────────────────────
 
 type Domain = 'Activities' | 'Air' | 'Cyber' | 'Land' | 'Space' | 'Surface' | 'Subsurface';
 type Option = { label: string; value: string };

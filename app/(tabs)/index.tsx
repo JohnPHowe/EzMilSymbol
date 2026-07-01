@@ -20,6 +20,259 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
+// ── Styles ────────────────────────────────────────────────────────────────────
+
+function makeStyles(dark: boolean) {
+  const bg           = dark ? '#374151' : '#fff';
+  const bgElevated   = dark ? '#4B5563' : '#fff';
+  const bgPanel      = dark ? '#374151' : '#F9FAFB';
+  const bgSelected   = dark ? '#1F2937' : '#E5E7EB';
+  const bgBlue       = dark ? '#1E3A5F' : '#EFF6FF';
+  const text         = dark ? '#F9FAFB' : '#11181C';
+  const textMuted    = dark ? '#9CA3AF' : '#687076';
+  const border       = dark ? '#6B7280' : '#D1D5DB';
+  const divider      = dark ? '#4B5563' : '#E5E7EB';
+
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: bg },
+    headingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 8,
+    },
+    heading: {
+      fontSize: 22,
+      fontWeight: '700',
+      color: text,
+    },
+    aliasControls: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginLeft: 'auto' as any,
+      display: 'none',
+    },
+    aliasLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: textMuted,
+    },
+    aliasInput: {
+      borderWidth: 1,
+      borderColor: border,
+      borderRadius: 6,
+      paddingHorizontal: 10,
+      paddingVertical: Platform.OS === 'ios' ? 8 : 6,
+      fontSize: 13,
+      color: text,
+      width: 160,
+      backgroundColor: bgElevated,
+    },
+    aliasButton: {
+      backgroundColor: '#0a7ea4',
+      borderRadius: 6,
+      paddingHorizontal: 12,
+      paddingVertical: Platform.OS === 'ios' ? 8 : 7,
+    },
+    aliasButtonDisabled: {
+      backgroundColor: dark ? '#6B7280' : '#D1D5DB',
+    },
+    aliasButtonText: {
+      fontSize: 13,
+      color: '#fff',
+      fontWeight: '600',
+    },
+    searchWrapper: { paddingHorizontal: 16, paddingBottom: 16 },
+    search: {
+      backgroundColor: dark ? '#4B5563' : '#f1f1f1',
+      borderRadius: 10,
+      paddingHorizontal: 12,
+      paddingVertical: Platform.OS === 'ios' ? 10 : 8,
+      fontSize: 15,
+      color: text,
+    },
+    searchResultsPanel: {
+      marginTop: 8,
+      borderWidth: 1,
+      borderColor: border,
+      borderRadius: 8,
+      backgroundColor: bgElevated,
+      overflow: 'hidden',
+      maxHeight: 300,
+      ...Platform.select({
+        web: { boxShadow: '0 4px 12px rgba(0,0,0,0.1)' } as any,
+        default: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          elevation: 4,
+        },
+      }),
+    },
+    searchResultRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: divider,
+    },
+    searchResultIconWrap: {
+      width: 28,
+      height: 28,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 10,
+    },
+    searchResultLabel: { fontSize: 14, color: text, flex: 1 },
+    body: { paddingHorizontal: 16, paddingBottom: 40 },
+    sectionHeadingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    sectionHeading: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: text,
+    },
+    resetButton: { padding: 8, marginLeft: 20 },
+    resetIcon: { fontSize: 22, color: '#0a7ea4' },
+    downloadRow: {
+      flexDirection: 'row',
+      gap: 10,
+      paddingHorizontal: 16,
+      paddingTop: 4,
+    },
+    downloadButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      borderWidth: 1,
+      borderColor: border,
+      borderRadius: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+    },
+    downloadButtonText: { fontSize: 13, color: text, fontWeight: '600' },
+    topDivider: {
+      width: StyleSheet.hairlineWidth,
+      backgroundColor: border,
+      alignSelf: 'stretch',
+      marginHorizontal: 16,
+    },
+    affiliationWrapper: { paddingTop: 4 },
+    affiliationHeading: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+      marginBottom: 12,
+    },
+    affiliationRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 10,
+    },
+    affiliationTile: {
+      width: 120,
+      alignItems: 'center',
+      paddingVertical: 8,
+      paddingHorizontal: 4,
+      borderRadius: 8,
+    },
+    affiliationTileSelected: { backgroundColor: bgSelected },
+    affiliationIconWrap: {
+      width: 84,
+      height: 84,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 6,
+    },
+    affiliationLabel: { fontSize: 11, color: text, textAlign: 'center' },
+    placeholderDropdown: {
+      borderWidth: 1, borderColor: border, borderRadius: 8,
+      paddingHorizontal: 14, paddingVertical: 12,
+      backgroundColor: bgPanel, marginBottom: 16,
+    },
+    breadcrumbRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: border,
+      borderRadius: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      backgroundColor: bg,
+    },
+    breadcrumbSep: { fontSize: 14, color: '#9CA3AF', marginHorizontal: 6 },
+    breadcrumbItem: { fontSize: 15, color: '#9CA3AF' },
+    breadcrumbItemAnswered: { color: text },
+    breadcrumbItemActive: { color: '#0a7ea4', fontWeight: '700' },
+    placeholderText: { fontSize: 15, color: '#9CA3AF', fontStyle: 'italic' },
+    gridWrapper: {
+      marginTop: 32,
+      paddingTop: 24,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: divider,
+    },
+    gridSection: { marginTop: 20 },
+    gridCategoryHeading: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+      marginBottom: 12,
+    },
+    gridRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+    tile: {
+      width: 100,
+      alignItems: 'center',
+      paddingVertical: 10,
+      paddingHorizontal: 6,
+      borderWidth: 1,
+      borderColor: border,
+      borderRadius: 8,
+      backgroundColor: bgElevated,
+    },
+    tileSelected: {
+      borderColor: '#0a7ea4',
+      backgroundColor: bgBlue,
+    },
+    tileDisabled: {
+      opacity: 0.35,
+    },
+    tileIconWrap: {
+      width: 40,
+      height: 40,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 6,
+    },
+    tileLabel: {
+      fontSize: 11,
+      color: text,
+      textAlign: 'center',
+    },
+    engagementBarInput: {
+      borderWidth: 1,
+      borderColor: border,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      fontSize: 15,
+      color: text,
+      backgroundColor: bgElevated,
+    },
+  });
+}
+
 const StylesCtx = createContext<ReturnType<typeof makeStyles>>(makeStyles(false));
 
 // ── Domain / Symbol Set ───────────────────────────────────────────────────────
@@ -2248,255 +2501,3 @@ export default function LookupScreen() {
   );
 }
 
-// ── Styles ────────────────────────────────────────────────────────────────────
-
-function makeStyles(dark: boolean) {
-  const bg           = dark ? '#374151' : '#fff';
-  const bgElevated   = dark ? '#4B5563' : '#fff';
-  const bgPanel      = dark ? '#374151' : '#F9FAFB';
-  const bgSelected   = dark ? '#1F2937' : '#E5E7EB';
-  const bgBlue       = dark ? '#1E3A5F' : '#EFF6FF';
-  const text         = dark ? '#F9FAFB' : '#11181C';
-  const textMuted    = dark ? '#9CA3AF' : '#687076';
-  const border       = dark ? '#6B7280' : '#D1D5DB';
-  const divider      = dark ? '#4B5563' : '#E5E7EB';
-
-  return StyleSheet.create({
-  container: { flex: 1, backgroundColor: bg },
-  headingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
-  },
-  heading: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: text,
-  },
-  aliasControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginLeft: 'auto' as any,
-    display: 'none',
-  },
-  aliasLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: textMuted,
-  },
-  aliasInput: {
-    borderWidth: 1,
-    borderColor: border,
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: Platform.OS === 'ios' ? 8 : 6,
-    fontSize: 13,
-    color: text,
-    width: 160,
-    backgroundColor: bgElevated,
-  },
-  aliasButton: {
-    backgroundColor: '#0a7ea4',
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: Platform.OS === 'ios' ? 8 : 7,
-  },
-  aliasButtonDisabled: {
-    backgroundColor: dark ? '#6B7280' : '#D1D5DB',
-  },
-  aliasButtonText: {
-    fontSize: 13,
-    color: '#fff',
-    fontWeight: '600',
-  },
-  searchWrapper: { paddingHorizontal: 16, paddingBottom: 16 },
-  search: {
-    backgroundColor: dark ? '#4B5563' : '#f1f1f1',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: Platform.OS === 'ios' ? 10 : 8,
-    fontSize: 15,
-    color: text,
-  },
-  searchResultsPanel: {
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: border,
-    borderRadius: 8,
-    backgroundColor: bgElevated,
-    overflow: 'hidden',
-    maxHeight: 300,
-    ...Platform.select({
-      web: { boxShadow: '0 4px 12px rgba(0,0,0,0.1)' } as any,
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 4,
-      },
-    }),
-  },
-  searchResultRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: divider,
-  },
-  searchResultIconWrap: {
-    width: 28,
-    height: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  searchResultLabel: { fontSize: 14, color: text, flex: 1 },
-  body: { paddingHorizontal: 16, paddingBottom: 40 },
-  sectionHeadingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  sectionHeading: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: text,
-  },
-  resetButton: { padding: 8, marginLeft: 20 },
-  resetIcon: { fontSize: 22, color: '#0a7ea4' },
-  downloadRow: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingTop: 4,
-  },
-  downloadButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    borderWidth: 1,
-    borderColor: border,
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  downloadButtonText: { fontSize: 13, color: text, fontWeight: '600' },
-  topDivider: {
-    width: StyleSheet.hairlineWidth,
-    backgroundColor: border,
-    alignSelf: 'stretch',
-    marginHorizontal: 16,
-  },
-  affiliationWrapper: { paddingTop: 4 },
-  affiliationHeading: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    marginBottom: 12,
-  },
-  affiliationRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  affiliationTile: {
-    width: 120,
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    borderRadius: 8,
-  },
-  affiliationTileSelected: { backgroundColor: bgSelected },
-  affiliationIconWrap: {
-    width: 84,
-    height: 84,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  affiliationLabel: { fontSize: 11, color: text, textAlign: 'center' },
-  placeholderDropdown: {
-    borderWidth: 1, borderColor: border, borderRadius: 8,
-    paddingHorizontal: 14, paddingVertical: 12,
-    backgroundColor: bgPanel, marginBottom: 16,
-  },
-  breadcrumbRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: border,
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    backgroundColor: bg,
-  },
-  breadcrumbSep: { fontSize: 14, color: '#9CA3AF', marginHorizontal: 6 },
-  breadcrumbItem: { fontSize: 15, color: '#9CA3AF' },
-  breadcrumbItemAnswered: { color: text },
-  breadcrumbItemActive: { color: '#0a7ea4', fontWeight: '700' },
-  placeholderText: { fontSize: 15, color: '#9CA3AF', fontStyle: 'italic' },
-  gridWrapper: {
-    marginTop: 32,
-    paddingTop: 24,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: divider,
-  },
-  gridSection: { marginTop: 20 },
-  gridCategoryHeading: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    marginBottom: 12,
-  },
-  gridRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  tile: {
-    width: 100,
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 6,
-    borderWidth: 1,
-    borderColor: border,
-    borderRadius: 8,
-    backgroundColor: bgElevated,
-  },
-  tileSelected: {
-    borderColor: '#0a7ea4',
-    backgroundColor: bgBlue,
-  },
-  tileDisabled: {
-    opacity: 0.35,
-  },
-  tileIconWrap: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  tileLabel: {
-    fontSize: 11,
-    color: text,
-    textAlign: 'center',
-  },
-  engagementBarInput: {
-    borderWidth: 1,
-    borderColor: border,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 15,
-    color: text,
-    backgroundColor: bgElevated,
-  },
-});
-}

@@ -5,8 +5,9 @@ import { COMMON_MODIFIER1_OPTIONS, COMMON_MODIFIER2_OPTIONS, MODIFIER1_OPTIONS, 
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Fuse from 'fuse.js';
 import ms from 'milsymbol';
-import { Fragment, useEffect, useRef, useMemo, useState, type ComponentProps } from 'react';
+import { Fragment, useRef, useMemo, useState, type ComponentProps } from 'react';
 import {
+  Image,
   Platform,
   ScrollView,
   StyleSheet,
@@ -201,7 +202,7 @@ function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', s
     <View style={{ paddingHorizontal: 16, paddingBottom: 8 }}>
       <View style={{ width: MAX_W, height: MAX_H, justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
         {svg && <SvgXml xml={svg} width={displayW} height={displayH} />}
-        {countryCode && Platform.OS === 'web' && (
+        {countryCode && (
           <View style={{ position: 'absolute', bottom: 4, right: 4 }}>
             <FlagIcon code={countryCode} size={28} />
           </View>
@@ -253,15 +254,19 @@ function DownloadButtons({ sidc }: { sidc: string }) {
 
 // ── Flag icons ────────────────────────────────────────────────────────────────
 
+const FLAG_CDN = 'https://cdn.jsdelivr.net/npm/flag-icons@7/flags/4x3';
+
 function FlagIcon({ code, size = 24 }: { code: string; size?: number }) {
-  if (Platform.OS !== 'web' || !code) return null;
+  if (!code) return null;
   const w = Math.round(size * 1.333);
   return (
-    <View
-      style={{ width: w, height: size, borderRadius: 2, overflow: 'hidden' }}
-      // @ts-ignore - className is supported in React Native Web
-      className={`fi fi-${code}`}
-    />
+    <View style={{ width: w, height: size, borderRadius: 2, overflow: 'hidden' }}>
+      <Image
+        source={{ uri: `${FLAG_CDN}/${code}.svg` }}
+        style={{ width: w, height: size }}
+        resizeMode="cover"
+      />
+    </View>
   );
 }
 
@@ -1246,16 +1251,6 @@ export default function LookupScreen() {
   const [continentFilter, setContinentFilter] = useState<string | null>(null);
   const [aliasText, setAliasText] = useState('');
   const [dynamicAliases, setDynamicAliases] = useState<Alias[]>(loadDynamicAliases);
-
-  useEffect(() => {
-    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
-    if (document.querySelector('[data-flag-icons]')) return;
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://cdn.jsdelivr.net/npm/flag-icons@7/css/flag-icons.min.css';
-    link.setAttribute('data-flag-icons', '');
-    document.head.appendChild(link);
-  }, []);
 
   function resetAll() {
     setExercise('real');

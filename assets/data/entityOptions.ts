@@ -1076,35 +1076,35 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
   // Source: node_modules/milsymbol/src/numbersidc/sidc/signalsintelligence.js
   // All five sets share the same entity/type structure.
   '50': [
-    { value: '11', label: 'Signals Intelligence', types: [
+    { value: '11', label: 'Emitter', types: [
       { value: '01', label: 'Communications', subtypes: [] },
       { value: '02', label: 'Jammer/Electronic Counter-Measures', subtypes: [] },
       { value: '03', label: 'Radar', subtypes: [] },
     ]},
   ],
   '51': [
-    { value: '11', label: 'Signals Intelligence', types: [
+    { value: '11', label: 'Emitter', types: [
       { value: '01', label: 'Communications', subtypes: [] },
       { value: '02', label: 'Jammer/Electronic Counter-Measures', subtypes: [] },
       { value: '03', label: 'Radar', subtypes: [] },
     ]},
   ],
   '52': [
-    { value: '11', label: 'Signals Intelligence', types: [
+    { value: '11', label: 'Emitter', types: [
       { value: '01', label: 'Communications', subtypes: [] },
       { value: '02', label: 'Jammer/Electronic Counter-Measures', subtypes: [] },
       { value: '03', label: 'Radar', subtypes: [] },
     ]},
   ],
   '53': [
-    { value: '11', label: 'Signals Intelligence', types: [
+    { value: '11', label: 'Emitter', types: [
       { value: '01', label: 'Communications', subtypes: [] },
       { value: '02', label: 'Jammer/Electronic Counter-Measures', subtypes: [] },
       { value: '03', label: 'Radar', subtypes: [] },
     ]},
   ],
   '54': [
-    { value: '11', label: 'Signals Intelligence', types: [
+    { value: '11', label: 'Emitter', types: [
       { value: '01', label: 'Communications', subtypes: [] },
       { value: '02', label: 'Jammer/Electronic Counter-Measures', subtypes: [] },
       { value: '03', label: 'Radar', subtypes: [] },

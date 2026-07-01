@@ -136,10 +136,10 @@ const GROUP_STARTS: number[][] = (() => {
 
 // ── SymbolPreview ─────────────────────────────────────────────────────────────
 
-function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', simpleStatusModifier = false, engagementBar = '', engagementType = '' }: { sidc: string; colorMode?: ColorModeValue; fillMode?: string; simpleStatusModifier?: boolean; engagementBar?: string; engagementType?: string }) {
+function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', simpleStatusModifier = false, engagementBar = '', engagementType = '', reinforced = false, reduced = false }: { sidc: string; colorMode?: ColorModeValue; fillMode?: string; simpleStatusModifier?: boolean; engagementBar?: string; engagementType?: string; reinforced?: boolean; reduced?: boolean }) {
   const { svg, naturalW, naturalH } = useMemo(() => {
     try {
-      const opts = { size: 100, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, ...(engagementBar && { engagementBar }), ...(engagementType && { engagementType }) };
+      const opts = { size: 100, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, ...(engagementBar && { engagementBar }), ...(engagementType && { engagementType }), ...(reinforced && { reinforced: true }), ...(reduced && { reduced: true }) };
       const baseSymbol = createSymbol(patchSIDC(sidc, 3, '0'), opts);
       const { width: naturalW, height: naturalH } = baseSymbol.getSize();
       let baseSvg = baseSymbol.asSVG();
@@ -165,7 +165,7 @@ function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', s
     } catch {
       return { svg: null, naturalW: 0, naturalH: 0 };
     }
-  }, [sidc, colorMode, fillMode, simpleStatusModifier, engagementBar, engagementType]);
+  }, [sidc, colorMode, fillMode, simpleStatusModifier, engagementBar, engagementType, reinforced, reduced]);
 
   const MAX_W = 280, MAX_H = 200;
   const scale = naturalW && naturalH ? Math.min(MAX_W / naturalW, MAX_H / naturalH) : 1;
@@ -471,6 +471,8 @@ function EntityTypeTile({
   disabled = false,
   engagementBar = '',
   engagementType = '',
+  reinforced = false,
+  reduced = false,
 }: {
   label: string;
   sidc: string;
@@ -482,10 +484,12 @@ function EntityTypeTile({
   disabled?: boolean;
   engagementBar?: string;
   engagementType?: string;
+  reinforced?: boolean;
+  reduced?: boolean;
 }) {
   const svg = useMemo(() => {
     try {
-      const opts = { size: 30, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, ...(engagementBar && { engagementBar }), ...(engagementType && { engagementType }) };
+      const opts = { size: 30, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, ...(engagementBar && { engagementBar }), ...(engagementType && { engagementType }), ...(reinforced && { reinforced: true }), ...(reduced && { reduced: true }) };
       let baseSvg = createSymbol(patchSIDC(sidc, 3, '0'), opts).asSVG();
       const contextChar = sidc.charAt(2);
       if (contextChar === '1' || contextChar === '2') {
@@ -509,7 +513,7 @@ function EntityTypeTile({
     } catch {
       return null;
     }
-  }, [sidc, colorMode, fillMode, simpleStatusModifier, engagementBar, engagementType]);
+  }, [sidc, colorMode, fillMode, simpleStatusModifier, engagementBar, engagementType, reinforced, reduced]);
 
   return (
     <TouchableOpacity
@@ -821,6 +825,15 @@ const ENGAGEMENT_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: 'EXPIRED',    label: 'Expired' },
 ];
 
+type ReinforcedReducedValue = 'none' | 'reinforced' | 'reduced' | 'both';
+
+const REINFORCED_REDUCED_OPTIONS: { value: ReinforcedReducedValue; label: string }[] = [
+  { value: 'none',       label: 'None' },
+  { value: 'reinforced', label: 'Reinforced' },
+  { value: 'reduced',    label: 'Reduced' },
+  { value: 'both',       label: 'Reinforced & Reduced' },
+];
+
 const HQTFFD_OPTIONS: Option[] = [
   { value: '0', label: 'Unknown' },
   { value: '1', label: 'Feint/Decoy/Dummy' },
@@ -1101,6 +1114,7 @@ export default function LookupScreen() {
   const [simpleStatusModifier, setSimpleStatusModifier] = useState(false);
   const [engagementBarText, setEngagementBarText] = useState('');
   const [engagementType, setEngagementType] = useState('');
+  const [reinforcedReduced, setReinforcedReduced] = useState<ReinforcedReducedValue>('none');
   const [aliasText, setAliasText] = useState('');
   const [dynamicAliases, setDynamicAliases] = useState<Alias[]>(loadDynamicAliases);
 
@@ -1131,6 +1145,7 @@ export default function LookupScreen() {
     setSimpleStatusModifier(false);
     setEngagementBarText('');
     setEngagementType('');
+    setReinforcedReduced('none');
   }
 
   function handleEntitySelect(v: string) {
@@ -1165,6 +1180,7 @@ export default function LookupScreen() {
     setSymbolSet(result.symbolSet);
     if (result.symbolSet !== '15' && result.symbolSet !== '35') { setMobility(null); setMobilityEchelon('0'); }
     if (result.symbolSet !== '27') { setEchelonGroup('0'); setEchelon(null); }
+    if (result.symbolSet !== '10') { setReinforcedReduced('none'); }
     setEntity(result.entity);
     setEntityType(result.entityType);
     setEntitySubtype(result.entitySubtype);
@@ -1209,6 +1225,10 @@ export default function LookupScreen() {
     setModifier1(null);
     setModifier2(null);
   }
+
+  const reinforcedReducedEnabled = symbolSet === '10';
+  const isReinforced = reinforcedReducedEnabled && (reinforcedReduced === 'reinforced' || reinforcedReduced === 'both');
+  const isReduced    = reinforcedReducedEnabled && (reinforcedReduced === 'reduced'    || reinforcedReduced === 'both');
 
   const symbolSetLabel = domain && symbolSet ? (SYMBOL_SETS[domain].find(o => o.value === symbolSet)?.label ?? symbolSet) : null;
   const mobilityEnabled = symbolSet === '15' || symbolSet === '35';
@@ -1302,7 +1322,7 @@ export default function LookupScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
         <View>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-            <SymbolPreview sidc={sidc} colorMode={colorMode} fillMode={fillMode} simpleStatusModifier={simpleStatusModifier} engagementBar={engagementBarText} engagementType={engagementType} />
+            <SymbolPreview sidc={sidc} colorMode={colorMode} fillMode={fillMode} simpleStatusModifier={simpleStatusModifier} engagementBar={engagementBarText} engagementType={engagementType} reinforced={isReinforced} reduced={isReduced} />
             <TouchableOpacity onPress={resetAll} style={styles.resetButton} activeOpacity={0.6}>
               <Text style={styles.resetIcon}>Reset ↺</Text>
             </TouchableOpacity>
@@ -1424,6 +1444,7 @@ export default function LookupScreen() {
                   setModifier1(null); setModifier2(null);
                   if (v !== '15' && v !== '35') { setMobility(null); setMobilityEchelon('0'); }
                   if (v !== '27') { setEchelonGroup('0'); setEchelon(null); }
+                  if (v !== '10') { setReinforcedReduced('none'); }
                   setOpenStep(3);
                 },
               }] : []),
@@ -1491,7 +1512,7 @@ export default function LookupScreen() {
                     label={opt.label}
                     sidc={patchSIDC(sidc, 5, opt.value)}
                     selected={false}
-                    onPress={() => { setSymbolSet(opt.value); setOpenStep(3); }}
+                    onPress={() => { setSymbolSet(opt.value); if (opt.value !== '10') { setReinforcedReduced('none'); } setOpenStep(3); }}
                     colorMode={colorMode}
                     fillMode={fillMode}
                   />
@@ -1757,7 +1778,7 @@ export default function LookupScreen() {
           <View style={{ marginTop: 20 }}>
             <View style={styles.breadcrumbRow}>
               <TouchableOpacity onPress={() => { setEchelonGroup('0'); setEchelon(null); }} activeOpacity={0.7}>
-                <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, echelonGroup === '0' && styles.breadcrumbItemActive]}>Leadership</Text>
+                <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, echelonGroup === '0' && styles.breadcrumbItemActive]}>Echelon</Text>
               </TouchableOpacity>
               {echelonGroup !== '0' && (
                 <>
@@ -1942,6 +1963,27 @@ export default function LookupScreen() {
                   engagementType={opt.value}
                 />
               ))}
+            </View>
+          </View>
+
+          <View style={{ opacity: reinforcedReducedEnabled ? 1 : 0.35, pointerEvents: reinforcedReducedEnabled ? 'auto' : 'none' }}>
+            <View style={styles.gridSection}>
+              <Text style={styles.gridCategoryHeading}>Reinforced or Reduced</Text>
+              <View style={styles.gridRow}>
+                {REINFORCED_REDUCED_OPTIONS.map(opt => (
+                  <EntityTypeTile
+                    key={opt.value}
+                    label={opt.label}
+                    sidc={sidc}
+                    selected={reinforcedReduced === opt.value}
+                    onPress={() => setReinforcedReduced(opt.value)}
+                    colorMode={colorMode}
+                    fillMode={fillMode}
+                    reinforced={opt.value === 'reinforced' || opt.value === 'both'}
+                    reduced={opt.value === 'reduced' || opt.value === 'both'}
+                  />
+                ))}
+              </View>
             </View>
           </View>
 

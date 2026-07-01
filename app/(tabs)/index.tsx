@@ -5,7 +5,8 @@ import { COMMON_MODIFIER1_OPTIONS, COMMON_MODIFIER2_OPTIONS, MODIFIER1_OPTIONS, 
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Fuse from 'fuse.js';
 import ms from 'milsymbol';
-import { Fragment, useRef, useMemo, useState, type ComponentProps } from 'react';
+import { Fragment, createContext, useContext, useRef, useMemo, useState, type ComponentProps } from 'react';
+import { useThemeContext } from '@/hooks/theme-context';
 import {
   Image,
   Platform,
@@ -18,6 +19,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
+
+const StylesCtx = createContext<ReturnType<typeof makeStyles>>(makeStyles(false));
 
 // ── Domain / Symbol Set ───────────────────────────────────────────────────────
 
@@ -236,16 +239,19 @@ function downloadSymbolPNG(sidc: string) {
 }
 
 function DownloadButtons({ sidc }: { sidc: string }) {
+  const styles = useContext(StylesCtx);
+  const { colorScheme } = useThemeContext();
+  const dark = colorScheme === 'dark';
   if (Platform.OS !== 'web') return null;
 
   return (
     <View style={styles.downloadRow}>
       <TouchableOpacity style={styles.downloadButton} onPress={() => downloadSymbolPNG(sidc)} activeOpacity={0.7}>
-        <FontAwesome6 name="file-arrow-down" size={14} color="#11181C" />
+        <FontAwesome6 name="file-arrow-down" size={14} color={dark ? '#F9FAFB' : '#11181C'} />
         <Text style={styles.downloadButtonText}>PNG</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.downloadButton} onPress={() => downloadSymbolSVG(sidc)} activeOpacity={0.7}>
-        <FontAwesome6 name="file-arrow-down" size={14} color="#11181C" />
+        <FontAwesome6 name="file-arrow-down" size={14} color={dark ? '#F9FAFB' : '#11181C'} />
         <Text style={styles.downloadButtonText}>SVG</Text>
       </TouchableOpacity>
     </View>
@@ -271,6 +277,7 @@ function FlagIcon({ code, size = 24 }: { code: string; size?: number }) {
 }
 
 function FlagTile({ code, name, selected, onPress }: { code: string; name: string; selected: boolean; onPress: () => void }) {
+  const styles = useContext(StylesCtx);
   return (
     <TouchableOpacity
       style={[styles.tile, selected && styles.tileSelected]}
@@ -314,6 +321,7 @@ function AffiliationTile({
   fillMode?: string;
   markerSidc?: string;
 }) {
+  const styles = useContext(StylesCtx);
   const svg = useMemo(() => {
     try {
       const opts = { size: 64, colorMode, ...getFillExtras(fillMode, colorMode) };
@@ -371,6 +379,7 @@ function AffiliationPicker({
   colorMode?: ColorModeValue;
   fillMode?: string;
 }) {
+  const styles = useContext(StylesCtx);
   return (
     <View style={styles.affiliationWrapper}>
       <Text style={styles.affiliationHeading}>Affiliation</Text>
@@ -505,6 +514,9 @@ function DomainTile({
   onPress: () => void;
   disabled?: boolean;
 }) {
+  const styles = useContext(StylesCtx);
+  const { colorScheme } = useThemeContext();
+  const dark = colorScheme === 'dark';
   return (
     <TouchableOpacity
       style={[styles.tile, selected && styles.tileSelected, disabled && styles.tileDisabled]}
@@ -516,7 +528,7 @@ function DomainTile({
         {svg ? (
           <SvgXml xml={svg} width={32} height={20} />
         ) : icon ? (
-          <FontAwesome6 name={icon} size={28} color="#687076" />
+          <FontAwesome6 name={icon} size={28} color={dark ? '#9CA3AF' : '#687076'} />
         ) : null}
       </View>
       <Text style={styles.tileLabel} numberOfLines={2}>{label}</Text>
@@ -553,6 +565,7 @@ function EntityTypeTile({
   reduced?: boolean;
   stackCount?: number;
 }) {
+  const styles = useContext(StylesCtx);
   const svg = useMemo(() => {
     try {
       const opts = { size: 30, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, ...(engagementBar && { engagementBar }), ...(engagementType && { engagementType }), ...(reinforced && { reinforced: true }), ...(reduced && { reduced: true }) };
@@ -642,6 +655,7 @@ function EntityTypeGrid({
   colorMode?: ColorModeValue;
   fillMode?: string;
 }) {
+  const styles = useContext(StylesCtx);
   function tileSidc(entityVal: string, typeVal: string, subtypeVal = '00') {
     let s = patchSIDC(baseSidc, 11, entityVal);
     s = patchSIDC(s, 13, typeVal);
@@ -793,6 +807,7 @@ function Breadcrumbs({
   openStep: number | null;
   onToggle: (step: number) => void;
 }) {
+  const styles = useContext(StylesCtx);
   // Highlight the deepest step that has been answered (the current hierarchy
   // position), not the next step awaiting a selection.
   const currentStep = steps.reduce((acc, s) => (s.value && !s.leaf ? s.step : acc), -1);
@@ -1202,6 +1217,7 @@ const SEARCH_FUSE = new Fuse(SEARCH_INDEX, {
 // ── SearchResultRow ───────────────────────────────────────────────────────────
 
 function SearchResultRow({ result, affiliation, onPress, colorMode = 'Light', fillMode = 'filledFramed' }: { result: SearchResult; affiliation: string; onPress: () => void; colorMode?: ColorModeValue; fillMode?: string }) {
+  const styles = useContext(StylesCtx);
   const svg = useMemo(() => {
     try {
       return createSymbol(patchSIDC(result.sidc, 4, affiliation), { size: 20, colorMode, ...getFillExtras(fillMode, colorMode) }).asSVG();
@@ -1221,6 +1237,9 @@ function SearchResultRow({ result, affiliation, onPress, colorMode = 'Light', fi
 }
 
 export default function LookupScreen() {
+  const { colorScheme } = useThemeContext();
+  const dark = colorScheme === 'dark';
+  const styles = useMemo(() => makeStyles(dark), [dark]);
   const [query, setQuery]         = useState('');
   const [exercise, setExercise]       = useState('real');
   const [context, setContext]         = useState<string | null>(null);
@@ -1438,6 +1457,7 @@ export default function LookupScreen() {
   }
 
   return (
+    <StylesCtx.Provider value={styles}>
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.headingRow}>
         <Text style={styles.heading}>Symbol Lookup</Text>
@@ -2224,13 +2244,25 @@ export default function LookupScreen() {
         <SIDCDisplay sidc={sidc} />
       </ScrollView>
     </SafeAreaView>
+    </StylesCtx.Provider>
   );
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+function makeStyles(dark: boolean) {
+  const bg           = dark ? '#374151' : '#fff';
+  const bgElevated   = dark ? '#4B5563' : '#fff';
+  const bgPanel      = dark ? '#374151' : '#F9FAFB';
+  const bgSelected   = dark ? '#1F2937' : '#E5E7EB';
+  const bgBlue       = dark ? '#1E3A5F' : '#EFF6FF';
+  const text         = dark ? '#F9FAFB' : '#11181C';
+  const textMuted    = dark ? '#9CA3AF' : '#687076';
+  const border       = dark ? '#6B7280' : '#D1D5DB';
+  const divider      = dark ? '#4B5563' : '#E5E7EB';
+
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: bg },
   headingRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2241,6 +2273,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 22,
     fontWeight: '700',
+    color: text,
   },
   aliasControls: {
     flexDirection: 'row',
@@ -2252,18 +2285,18 @@ const styles = StyleSheet.create({
   aliasLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#687076',
+    color: textMuted,
   },
   aliasInput: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: border,
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: Platform.OS === 'ios' ? 8 : 6,
     fontSize: 13,
-    color: '#11181C',
+    color: text,
     width: 160,
-    backgroundColor: '#fff',
+    backgroundColor: bgElevated,
   },
   aliasButton: {
     backgroundColor: '#0a7ea4',
@@ -2272,7 +2305,7 @@ const styles = StyleSheet.create({
     paddingVertical: Platform.OS === 'ios' ? 8 : 7,
   },
   aliasButtonDisabled: {
-    backgroundColor: '#D1D5DB',
+    backgroundColor: dark ? '#6B7280' : '#D1D5DB',
   },
   aliasButtonText: {
     fontSize: 13,
@@ -2281,19 +2314,19 @@ const styles = StyleSheet.create({
   },
   searchWrapper: { paddingHorizontal: 16, paddingBottom: 16 },
   search: {
-    backgroundColor: '#f1f1f1',
+    backgroundColor: dark ? '#4B5563' : '#f1f1f1',
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: Platform.OS === 'ios' ? 10 : 8,
     fontSize: 15,
-    color: '#000',
+    color: text,
   },
   searchResultsPanel: {
     marginTop: 8,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: border,
     borderRadius: 8,
-    backgroundColor: '#fff',
+    backgroundColor: bgElevated,
     overflow: 'hidden',
     maxHeight: 300,
     ...Platform.select({
@@ -2313,7 +2346,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: divider,
   },
   searchResultIconWrap: {
     width: 28,
@@ -2322,7 +2355,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 10,
   },
-  searchResultLabel: { fontSize: 14, color: '#11181C', flex: 1 },
+  searchResultLabel: { fontSize: 14, color: text, flex: 1 },
   body: { paddingHorizontal: 16, paddingBottom: 40 },
   sectionHeadingRow: {
     flexDirection: 'row',
@@ -2332,7 +2365,7 @@ const styles = StyleSheet.create({
   sectionHeading: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#11181C',
+    color: text,
   },
   resetButton: { padding: 8, marginLeft: 20 },
   resetIcon: { fontSize: 22, color: '#0a7ea4' },
@@ -2347,15 +2380,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: border,
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
-  downloadButtonText: { fontSize: 13, color: '#11181C', fontWeight: '600' },
+  downloadButtonText: { fontSize: 13, color: text, fontWeight: '600' },
   topDivider: {
     width: StyleSheet.hairlineWidth,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: border,
     alignSelf: 'stretch',
     marginHorizontal: 16,
   },
@@ -2363,7 +2396,7 @@ const styles = StyleSheet.create({
   affiliationHeading: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#687076',
+    color: textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     marginBottom: 12,
@@ -2380,7 +2413,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     borderRadius: 8,
   },
-  affiliationTileSelected: { backgroundColor: '#E5E7EB' },
+  affiliationTileSelected: { backgroundColor: bgSelected },
   affiliationIconWrap: {
     width: 84,
     height: 84,
@@ -2388,39 +2421,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 6,
   },
-  affiliationLabel: { fontSize: 11, color: '#11181C', textAlign: 'center' },
+  affiliationLabel: { fontSize: 11, color: text, textAlign: 'center' },
   placeholderDropdown: {
-    borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8,
+    borderWidth: 1, borderColor: border, borderRadius: 8,
     paddingHorizontal: 14, paddingVertical: 12,
-    backgroundColor: '#F9FAFB', marginBottom: 16,
+    backgroundColor: bgPanel, marginBottom: 16,
   },
   breadcrumbRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: border,
     borderRadius: 8,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: bg,
   },
   breadcrumbSep: { fontSize: 14, color: '#9CA3AF', marginHorizontal: 6 },
   breadcrumbItem: { fontSize: 15, color: '#9CA3AF' },
-  breadcrumbItemAnswered: { color: '#11181C' },
+  breadcrumbItemAnswered: { color: text },
   breadcrumbItemActive: { color: '#0a7ea4', fontWeight: '700' },
   placeholderText: { fontSize: 15, color: '#9CA3AF', fontStyle: 'italic' },
   gridWrapper: {
     marginTop: 32,
     paddingTop: 24,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: divider,
   },
   gridSection: { marginTop: 20 },
   gridCategoryHeading: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#687076',
+    color: textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     marginBottom: 12,
@@ -2432,13 +2465,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 6,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: border,
     borderRadius: 8,
-    backgroundColor: '#fff',
+    backgroundColor: bgElevated,
   },
   tileSelected: {
     borderColor: '#0a7ea4',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: bgBlue,
   },
   tileDisabled: {
     opacity: 0.35,
@@ -2452,17 +2485,18 @@ const styles = StyleSheet.create({
   },
   tileLabel: {
     fontSize: 11,
-    color: '#11181C',
+    color: text,
     textAlign: 'center',
   },
   engagementBarInput: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 15,
-    color: '#11181C',
-    backgroundColor: '#fff',
+    color: text,
+    backgroundColor: bgElevated,
   },
 });
+}

@@ -41,6 +41,7 @@ const SYMBOL_SETS: Record<Domain, Option[]> = {
   Air: [
     { value: '01', label: 'Air' },
     { value: '02', label: 'Air Missile' },
+    { value: '50', label: 'Signals Intelligence' },
     // Note: "Atmospheric (Weather)" (symbol set 45) is omitted — milsymbol has
     // no icon data for it and it only ever renders the generic unknown glyph.
   ],
@@ -53,19 +54,23 @@ const SYMBOL_SETS: Record<Domain, Option[]> = {
     { value: '15', label: 'Land Equipment' },
     { value: '20', label: 'Land Installation' },
     { value: '27', label: 'Dismounted Individuals' },
+    { value: '51', label: 'Signals Intelligence' },
   ],
   Space: [
     { value: '05', label: 'Space' },
     { value: '06', label: 'Space Missile' },
+    { value: '52', label: 'Signals Intelligence' },
     // Note: "Meteorological Space" (symbol set 47) is omitted — milsymbol has
     // no icon data for it and it only ever renders the generic unknown glyph.
   ],
   Surface: [
     { value: '30', label: 'Sea Surface' },
+    { value: '54', label: 'Signals Intelligence' },
   ],
   Subsurface: [
     { value: '35', label: 'Sea Subsurface' },
     { value: '36', label: 'Mine Warfare' },
+    { value: '53', label: 'Signals Intelligence' },
     // Note: "Oceanographic" (symbol set 46) is omitted — milsymbol has no
     // icon data for it and it only ever renders the generic unknown glyph.
   ],

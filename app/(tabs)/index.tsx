@@ -1250,7 +1250,7 @@ export default function LookupScreen() {
                   <AffiliationTile
                     key={opt.value}
                     label={opt.label}
-                    sidc={patchSIDC(sidc, 3, EXERCISE_CONTEXT_BASELINE[opt.value] ?? '0')}
+                    sidc={patchSIDC(sidc, 3, EXERCISE_CONTEXT_BASELINE[opt.value] === '1' ? '0' : EXERCISE_CONTEXT_BASELINE[opt.value] ?? '0')}
                     selected={exercise === opt.value}
                     onPress={() => handleExerciseSelect(opt.value)}
                     colorMode={colorMode}

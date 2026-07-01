@@ -9,7 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "deploy": "expo export -p web && echo. > dist/.nojekyll"
+    "deploy": "expo export -p web && node scripts/deploy.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

@@ -837,8 +837,8 @@ const HQTFFD_OPTIONS: Option[] = [
 
 const EXERCISE_OPTIONS: Option[] = [
   { value: 'real', label: 'None' },
-  { value: 'exercise', label: 'Yes, exercise' },
-  { value: 'simulation', label: 'Yes, simulation' },
+  { value: 'exercise', label: 'Exercise' },
+  { value: 'simulation', label: 'Simulation' },
 ];
 
 // Baseline context digit (position 3) for each exercise type, before any

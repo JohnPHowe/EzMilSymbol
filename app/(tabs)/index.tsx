@@ -1327,20 +1327,25 @@ export default function LookupScreen() {
 
         <View style={{ flex: 1, paddingTop: 4 }}>
           <Text style={[styles.sectionHeading, { marginBottom: 16 }]}>Identity</Text>
-          <AffiliationPicker baseSidc={sidc} affiliation={affiliation} onSelect={setAffiliation} colorMode={colorMode} fillMode={fillMode} />
-          <Text style={[styles.affiliationHeading, { paddingHorizontal: 12, marginTop: 8 }]}>Reality / Exercise / Simulation</Text>
-          <View style={styles.affiliationRow}>
-            {EXERCISE_OPTIONS.map(opt => (
-              <AffiliationTile
-                key={opt.value}
-                label={opt.label}
-                sidc={patchSIDC(sidc, 3, EXERCISE_CONTEXT_BASELINE[opt.value] ?? '0')}
-                selected={exercise === opt.value}
-                onPress={() => handleExerciseSelect(opt.value)}
-                colorMode={colorMode}
-                fillMode={fillMode}
-              />
-            ))}
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+            <AffiliationPicker baseSidc={sidc} affiliation={affiliation} onSelect={setAffiliation} colorMode={colorMode} fillMode={fillMode} />
+            <View style={styles.topDivider} />
+            <View>
+              <Text style={[styles.affiliationHeading, { paddingHorizontal: 12 }]}>Reality / Exercise / Simulation</Text>
+              <View style={styles.affiliationRow}>
+                {EXERCISE_OPTIONS.map(opt => (
+                  <AffiliationTile
+                    key={opt.value}
+                    label={opt.label}
+                    sidc={patchSIDC(sidc, 3, EXERCISE_CONTEXT_BASELINE[opt.value] ?? '0')}
+                    selected={exercise === opt.value}
+                    onPress={() => handleExerciseSelect(opt.value)}
+                    colorMode={colorMode}
+                    fillMode={fillMode}
+                  />
+                ))}
+              </View>
+            </View>
           </View>
         </View>
       </View>

@@ -440,7 +440,8 @@ function EntityTypeTile({
 }) {
   const svg = useMemo(() => {
     try {
-      return createSymbol(sidc, { size: 30, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, ...(engagementBar && { engagementBar }), ...(engagementType && { engagementType }) }).asSVG();
+      const previewSidc = patchSIDC(sidc, 3, '0');
+      return createSymbol(previewSidc, { size: 30, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, ...(engagementBar && { engagementBar }), ...(engagementType && { engagementType }) }).asSVG();
     } catch {
       return null;
     }

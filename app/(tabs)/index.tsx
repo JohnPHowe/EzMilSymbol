@@ -665,74 +665,6 @@ function Breadcrumbs({
   );
 }
 
-// ── QuestionLabel ─────────────────────────────────────────────────────────────
-
-function QuestionLabel({ label, onReset }: { label: string; onReset: () => void }) {
-  return (
-    <View style={styles.questionLabelRow}>
-      <Text style={styles.questionLabel}>{label}</Text>
-      <TouchableOpacity onPress={onReset} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-        <Text style={styles.questionResetIcon}>↺</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
-
-// ── Dropdown ──────────────────────────────────────────────────────────────────
-
-function Dropdown({
-  placeholder,
-  options,
-  value,
-  onSelect,
-  zIndex = 10,
-}: {
-  placeholder: string;
-  options: Option[];
-  value: string | null;
-  onSelect: (v: string) => void;
-  zIndex?: number;
-}) {
-  const [open, setOpen] = useState(false);
-  const sorted = useMemo(
-    () => [...options].sort((a, b) => a.label.localeCompare(b.label)),
-    [options]
-  );
-  const selected = sorted.find(o => o.value === value);
-
-  return (
-    <View style={[styles.dropdownWrapper, { zIndex }]}>
-      <TouchableOpacity
-        style={styles.dropdownButton}
-        onPress={() => setOpen(o => !o)}
-        activeOpacity={0.7}
-      >
-        <Text style={selected ? styles.dropdownValue : styles.dropdownPlaceholder}>
-          {selected ? selected.label : placeholder}
-        </Text>
-        <Text style={styles.dropdownChevron}>{open ? '▲' : '▼'}</Text>
-      </TouchableOpacity>
-
-      {open && (
-        <View style={styles.dropdownList}>
-          {sorted.map(opt => (
-            <TouchableOpacity
-              key={opt.value}
-              style={[styles.dropdownItem, opt.value === value && styles.dropdownItemSelected]}
-              onPress={() => { onSelect(opt.value); setOpen(false); }}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.dropdownItemText, opt.value === value && styles.dropdownItemTextSelected]}>
-                {opt.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-    </View>
-  );
-}
-
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 const DEFAULT_SIDC = '15000000000000000000000000000000';
@@ -841,8 +773,6 @@ const EXERCISE_OPTIONS: Option[] = [
   { value: 'simulation', label: 'Simulation' },
 ];
 
-// Baseline context digit (position 3) for each exercise type, before any
-// Restricted Target / No-Strike Entity override from Q11.
 const EXERCISE_CONTEXT_BASELINE: Record<string, string> = {
   real: '0',
   exercise: '1',
@@ -855,24 +785,6 @@ const MOBILITY_TYPE_OPTIONS: { value: string; label: string; icon: ComponentProp
   { value: '5', label: 'Mobile on water', icon: 'water' },
   { value: '6', label: 'Naval towed array', icon: 'ship' },
 ];
-
-const CONTEXT_OPTIONS: Record<string, Option[]> = {
-  real: [
-    { value: '0', label: 'No, just Reality' },
-    { value: '3', label: 'Yes, Restricted Target - Reality' },
-    { value: '4', label: 'Yes, No-Strike Entity - Reality' },
-  ],
-  exercise: [
-    { value: '1', label: 'No, just Exercise' },
-    { value: '5', label: 'Yes, Restricted Target - Exercise' },
-    { value: '6', label: 'Yes, No-Strike Entity - Exercise' },
-  ],
-  simulation: [
-    { value: '2', label: 'No, just Simulation' },
-    { value: '7', label: 'Yes, Restricted Target - Simulation' },
-    { value: '8', label: 'Yes, No-Strike Entity - Simulation' },
-  ],
-};
 
 const COLOR_MODE_OPTIONS: { value: string; label: string }[] = [
   { value: 'Light',    label: 'Light' },
@@ -2070,18 +1982,17 @@ const styles = StyleSheet.create({
   },
   affiliationWrapper: { paddingTop: 4 },
   affiliationHeading: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
-    color: '#9CA3AF',
+    color: '#687076',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   affiliationRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    padding: 12,
   },
   affiliationTile: {
     width: 120,
@@ -2099,54 +2010,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   affiliationLabel: { fontSize: 11, color: '#11181C', textAlign: 'center' },
-  questionLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  questionLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#687076',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    flex: 1,
-  },
-  questionResetIcon: { fontSize: 16, color: '#9CA3AF' },
-  dropdownWrapper: { marginBottom: 16 },
-  dropdownButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    backgroundColor: '#fff',
-  },
-  dropdownPlaceholder: { fontSize: 15, color: '#999' },
-  dropdownValue:       { fontSize: 15, color: '#11181C' },
-  dropdownChevron:     { fontSize: 11, color: '#687076' },
-  dropdownList: {
-    marginTop: 4,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    overflow: 'hidden',
-    ...Platform.select({
-      web: { boxShadow: '0 4px 12px rgba(0,0,0,0.1)' } as any,
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 4,
-      },
-    }),
-  },
   placeholderDropdown: {
     borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8,
     paddingHorizontal: 14, paddingVertical: 12,
@@ -2167,29 +2030,7 @@ const styles = StyleSheet.create({
   breadcrumbItem: { fontSize: 15, color: '#9CA3AF' },
   breadcrumbItemAnswered: { color: '#11181C' },
   breadcrumbItemActive: { color: '#0a7ea4', fontWeight: '700' },
-  breadcrumbPanel: {
-    marginTop: 4,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    overflow: 'hidden',
-    ...Platform.select({
-      web: { boxShadow: '0 4px 12px rgba(0,0,0,0.1)' } as any,
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 4,
-      },
-    }),
-  },
   placeholderText: { fontSize: 15, color: '#9CA3AF', fontStyle: 'italic' },
-  dropdownItem:             { paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E7EB' },
-  dropdownItemSelected:     { backgroundColor: '#EFF6FF' },
-  dropdownItemText:         { fontSize: 15, color: '#11181C' },
-  dropdownItemTextSelected: { color: '#0a7ea4', fontWeight: '600' },
   gridWrapper: {
     marginTop: 32,
     paddingTop: 24,
@@ -2241,7 +2082,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    fontSize: 14,
+    fontSize: 15,
     color: '#11181C',
     backgroundColor: '#fff',
   },

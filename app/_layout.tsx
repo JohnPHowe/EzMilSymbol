@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { useState } from 'react';
-import { Text, TouchableOpacity, View, useColorScheme as useOSColorScheme } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { Sidebar } from '@/components/sidebar';
 import { ThemeContext, type ColorScheme } from '@/hooks/theme-context';
@@ -18,8 +18,7 @@ const CharcoalDarkTheme = {
 };
 
 export default function RootLayout() {
-  const osScheme = useOSColorScheme() ?? 'light';
-  const [colorScheme, setColorScheme] = useState<ColorScheme>(osScheme);
+  const [colorScheme, setColorScheme] = useState<ColorScheme>('light');
   const toggle = () => setColorScheme(s => (s === 'light' ? 'dark' : 'light'));
 
   return (

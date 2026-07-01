@@ -270,7 +270,7 @@ function AffiliationPicker({
           <AffiliationTile
             key={opt.value}
             label={opt.label}
-            sidc={patchSIDC(baseSidc, 4, opt.value)}
+            sidc={patchSIDC(patchSIDC(baseSidc, 3, '0'), 4, opt.value)}
             selected={affiliation === opt.value}
             onPress={() => onSelect(opt.value)}
             colorMode={colorMode}

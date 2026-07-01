@@ -1273,12 +1273,19 @@ export default function LookupScreen() {
                 {EXERCISE_OPTIONS.map(opt => {
                   const contextVal = EXERCISE_CONTEXT_BASELINE[opt.value] ?? '0';
                   const isExercise = contextVal === '1';
+                  let markerSidc: string | undefined;
+                  if (isExercise) {
+                    // Symbol set '00' (nothing selected) suppresses exercise markers for
+                    // non-Unknown affiliations in milsymbol — use land unit (10) as fallback.
+                    const ms = patchSIDC(sidc, 3, '1');
+                    markerSidc = ms.slice(4, 6) === '00' ? patchSIDC(ms, 5, '10') : ms;
+                  }
                   return (
                   <AffiliationTile
                     key={opt.value}
                     label={opt.label}
                     sidc={patchSIDC(sidc, 3, isExercise ? '0' : contextVal)}
-                    markerSidc={isExercise ? patchSIDC(sidc, 3, '1') : undefined}
+                    markerSidc={markerSidc}
                     selected={exercise === opt.value}
                     onPress={() => handleExerciseSelect(opt.value)}
                     colorMode={colorMode}

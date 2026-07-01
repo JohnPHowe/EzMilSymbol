@@ -1928,16 +1928,6 @@ export default function LookupScreen() {
             </View>
           </View>
 
-          <View style={{ marginTop: 20 }}>
-            <QuestionLabel label="Q11  Is this a restricted target or no-strike entity?" onReset={() => setContext(null)} />
-            <Dropdown
-              placeholder="Select a context…"
-              options={CONTEXT_OPTIONS[exercise]}
-              value={context}
-              onSelect={setContext}
-              zIndex={3}
-            />
-          </View>
         </View>
 
         <SIDCDisplay sidc={sidc} />

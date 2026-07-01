@@ -961,6 +961,14 @@ const COLOR_MODE_OPTIONS: { value: string; label: string }[] = [
   { value: 'Custom',   label: 'Custom' },
 ];
 
+const CONTINENT_ICONS: Record<string, ComponentProps<typeof FontAwesome6>['name']> = {
+  Africa:   'earth-africa',
+  Americas: 'earth-americas',
+  Asia:     'earth-asia',
+  Europe:   'earth-europe',
+  Oceania:  'earth-oceania',
+};
+
 const FILL_OPTIONS: { value: string; label: string }[] = [
   { value: 'filledFramed',  label: 'Filled + Framed' },
   { value: 'noFillColor',   label: 'No Fill + Color' },
@@ -2152,6 +2160,7 @@ export default function LookupScreen() {
                   <DomainTile
                     key={cont.name}
                     label={cont.name}
+                    icon={CONTINENT_ICONS[cont.name]}
                     selected={false}
                     onPress={() => setContinentFilter(cont.name)}
                   />

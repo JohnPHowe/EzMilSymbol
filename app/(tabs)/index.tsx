@@ -1449,37 +1449,41 @@ export default function LookupScreen() {
         <View style={styles.gridWrapper}>
           <Text style={[styles.sectionHeading, { marginBottom: 16 }]}>Color Options</Text>
 
-          <View style={styles.gridSection}>
-            <Text style={styles.gridCategoryHeading}>Color Mode</Text>
-            <View style={styles.gridRow}>
-              {COLOR_MODE_OPTIONS.map(opt => (
-                <EntityTypeTile
-                  key={opt.value}
-                  label={opt.label}
-                  sidc={sidc}
-                  colorMode={opt.value}
-                  fillMode={fillMode}
-                  selected={colorMode === opt.value}
-                  onPress={() => setColorMode(opt.value)}
-                />
-              ))}
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+            <View style={styles.gridSection}>
+              <Text style={styles.gridCategoryHeading}>Color Mode</Text>
+              <View style={styles.gridRow}>
+                {COLOR_MODE_OPTIONS.map(opt => (
+                  <EntityTypeTile
+                    key={opt.value}
+                    label={opt.label}
+                    sidc={sidc}
+                    colorMode={opt.value}
+                    fillMode={fillMode}
+                    selected={colorMode === opt.value}
+                    onPress={() => setColorMode(opt.value)}
+                  />
+                ))}
+              </View>
             </View>
-          </View>
 
-          <View style={styles.gridSection}>
-            <Text style={styles.gridCategoryHeading}>Fill & Frame Options</Text>
-            <View style={styles.gridRow}>
-              {FILL_OPTIONS.map(opt => (
-                <EntityTypeTile
-                  key={opt.value}
-                  label={opt.label}
-                  sidc={sidc}
-                  colorMode={colorMode}
-                  fillMode={opt.value}
-                  selected={fillMode === opt.value}
-                  onPress={() => setFillMode(opt.value)}
-                />
-              ))}
+            <View style={[styles.topDivider, { marginTop: 20 }]} />
+
+            <View style={styles.gridSection}>
+              <Text style={styles.gridCategoryHeading}>Fill & Frame Options</Text>
+              <View style={styles.gridRow}>
+                {FILL_OPTIONS.map(opt => (
+                  <EntityTypeTile
+                    key={opt.value}
+                    label={opt.label}
+                    sidc={sidc}
+                    colorMode={colorMode}
+                    fillMode={opt.value}
+                    selected={fillMode === opt.value}
+                    onPress={() => setFillMode(opt.value)}
+                  />
+                ))}
+              </View>
             </View>
           </View>
         </View>

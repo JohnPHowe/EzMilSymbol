@@ -1839,24 +1839,6 @@ export default function LookupScreen() {
           </View>
 
           <View style={styles.gridSection}>
-            <Text style={styles.gridCategoryHeading}>Status</Text>
-            <View style={styles.gridRow}>
-              {STATUS_OPTIONS.map((opt, i) => (
-                <EntityTypeTile
-                  key={i}
-                  label={opt.label}
-                  sidc={patchSIDC(sidc, 7, opt.value)}
-                  selected={status === opt.value && simpleStatusModifier === (opt.simpleStatusModifier ?? false)}
-                  onPress={() => { setStatus(opt.value); setSimpleStatusModifier(opt.simpleStatusModifier ?? false); }}
-                  colorMode={colorMode}
-                  fillMode={fillMode}
-                  simpleStatusModifier={opt.simpleStatusModifier ?? false}
-                />
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.gridSection}>
             <Text style={styles.gridCategoryHeading}>Headquarters / Task Force / Feint / Dummy</Text>
             <View style={styles.gridRow}>
               {[
@@ -1871,6 +1853,24 @@ export default function LookupScreen() {
                   onPress={() => setHqtffd(opt.value)}
                   colorMode={colorMode}
                   fillMode={fillMode}
+                />
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.gridSection}>
+            <Text style={styles.gridCategoryHeading}>Status</Text>
+            <View style={styles.gridRow}>
+              {STATUS_OPTIONS.map((opt, i) => (
+                <EntityTypeTile
+                  key={i}
+                  label={opt.label}
+                  sidc={patchSIDC(sidc, 7, opt.value)}
+                  selected={status === opt.value && simpleStatusModifier === (opt.simpleStatusModifier ?? false)}
+                  onPress={() => { setStatus(opt.value); setSimpleStatusModifier(opt.simpleStatusModifier ?? false); }}
+                  colorMode={colorMode}
+                  fillMode={fillMode}
+                  simpleStatusModifier={opt.simpleStatusModifier ?? false}
                 />
               ))}
             </View>

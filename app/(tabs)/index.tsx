@@ -219,6 +219,7 @@ function AffiliationTile({
   onPress,
   colorMode = 'Light',
   fillMode = 'filledFramed',
+  markerSidc,
 }: {
   label: string;
   sidc: string;
@@ -226,14 +227,24 @@ function AffiliationTile({
   onPress: () => void;
   colorMode?: string;
   fillMode?: string;
+  markerSidc?: string;
 }) {
   const svg = useMemo(() => {
     try {
-      return createSymbol(sidc, { size: 64, colorMode, ...getFillExtras(fillMode, colorMode) }).asSVG();
+      const opts = { size: 64, colorMode, ...getFillExtras(fillMode, colorMode) };
+      const baseSvg = createSymbol(sidc, opts).asSVG();
+      if (markerSidc) {
+        // Extract exercise context marker (K/J/X) from the marker-sidc render and inject
+        // into the base SVG so the correct frame shape is preserved.
+        const markerSvg = createSymbol(markerSidc, opts).asSVG();
+        const match = markerSvg.match(/<text[^>]*>[KJX]<\/text>/);
+        if (match) return baseSvg.replace('</svg>', match[0] + '</svg>');
+      }
+      return baseSvg;
     } catch {
       return null;
     }
-  }, [sidc, colorMode, fillMode]);
+  }, [sidc, markerSidc, colorMode, fillMode]);
 
   return (
     <TouchableOpacity
@@ -1246,17 +1257,22 @@ export default function LookupScreen() {
             <View>
               <Text style={[styles.affiliationHeading, { paddingHorizontal: 12 }]}>Reality / Exercise / Simulation</Text>
               <View style={styles.affiliationRow}>
-                {EXERCISE_OPTIONS.map(opt => (
+                {EXERCISE_OPTIONS.map(opt => {
+                  const contextVal = EXERCISE_CONTEXT_BASELINE[opt.value] ?? '0';
+                  const isExercise = contextVal === '1';
+                  return (
                   <AffiliationTile
                     key={opt.value}
                     label={opt.label}
-                    sidc={patchSIDC(sidc, 3, EXERCISE_CONTEXT_BASELINE[opt.value] === '1' ? '0' : EXERCISE_CONTEXT_BASELINE[opt.value] ?? '0')}
+                    sidc={patchSIDC(sidc, 3, isExercise ? '0' : contextVal)}
+                    markerSidc={isExercise ? patchSIDC(sidc, 3, '1') : undefined}
                     selected={exercise === opt.value}
                     onPress={() => handleExerciseSelect(opt.value)}
                     colorMode={colorMode}
                     fillMode={fillMode}
                   />
-                ))}
+                  );
+                })}
               </View>
             </View>
           </View>

@@ -1513,7 +1513,7 @@ export default function LookupScreen() {
         </View>
 
         <View style={styles.gridWrapper}>
-          <Text style={[styles.sectionHeading, { marginBottom: 16 }]}>Other Modifiers</Text>
+          <Text style={[styles.sectionHeading, { marginBottom: 16 }]}>Color Options</Text>
 
           <View style={styles.gridSection}>
             <Text style={styles.gridCategoryHeading}>Color Mode</Text>
@@ -1548,6 +1548,10 @@ export default function LookupScreen() {
               ))}
             </View>
           </View>
+        </View>
+
+        <View style={styles.gridWrapper}>
+          <Text style={[styles.sectionHeading, { marginBottom: 16 }]}>Other Modifiers</Text>
 
           <View style={{ marginTop: 20 }}>
             <View style={styles.breadcrumbRow}>

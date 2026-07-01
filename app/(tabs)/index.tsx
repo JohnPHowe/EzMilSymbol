@@ -1,10 +1,11 @@
 import { ALIASES, type Alias } from '@/assets/data/aliases';
+import { CONTINENTS, INTERNATIONAL, type Country } from '@/assets/data/countries';
 import { ENTITY_OPTIONS, type EntityDef, type EntityType } from '@/assets/data/entityOptions';
 import { COMMON_MODIFIER1_OPTIONS, COMMON_MODIFIER2_OPTIONS, MODIFIER1_OPTIONS, MODIFIER2_OPTIONS } from '@/assets/data/modifierOptions';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Fuse from 'fuse.js';
 import ms from 'milsymbol';
-import { Fragment, useRef, useMemo, useState, type ComponentProps } from 'react';
+import { Fragment, useEffect, useRef, useMemo, useState, type ComponentProps } from 'react';
 import {
   Platform,
   ScrollView,
@@ -136,7 +137,7 @@ const GROUP_STARTS: number[][] = (() => {
 
 // ── SymbolPreview ─────────────────────────────────────────────────────────────
 
-function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', simpleStatusModifier = false, engagementBar = '', engagementType = '', reinforced = false, reduced = false, stackCount = 1 }: { sidc: string; colorMode?: ColorModeValue; fillMode?: string; simpleStatusModifier?: boolean; engagementBar?: string; engagementType?: string; reinforced?: boolean; reduced?: boolean; stackCount?: number }) {
+function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', simpleStatusModifier = false, engagementBar = '', engagementType = '', reinforced = false, reduced = false, stackCount = 1, countryCode = null }: { sidc: string; colorMode?: ColorModeValue; fillMode?: string; simpleStatusModifier?: boolean; engagementBar?: string; engagementType?: string; reinforced?: boolean; reduced?: boolean; stackCount?: number; countryCode?: string | null }) {
   const { svg, naturalW, naturalH } = useMemo(() => {
     try {
       const opts = { size: 100, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, ...(engagementBar && { engagementBar }), ...(engagementType && { engagementType }), ...(reinforced && { reinforced: true }), ...(reduced && { reduced: true }) };
@@ -198,8 +199,13 @@ function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', s
 
   return (
     <View style={{ paddingHorizontal: 16, paddingBottom: 8 }}>
-      <View style={{ width: MAX_W, height: MAX_H, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ width: MAX_W, height: MAX_H, justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
         {svg && <SvgXml xml={svg} width={displayW} height={displayH} />}
+        {countryCode && Platform.OS === 'web' && (
+          <View style={{ position: 'absolute', bottom: 4, right: 4 }}>
+            <FlagIcon code={countryCode} size={28} />
+          </View>
+        )}
       </View>
     </View>
   );
@@ -242,6 +248,35 @@ function DownloadButtons({ sidc }: { sidc: string }) {
         <Text style={styles.downloadButtonText}>SVG</Text>
       </TouchableOpacity>
     </View>
+  );
+}
+
+// ── Flag icons ────────────────────────────────────────────────────────────────
+
+function FlagIcon({ code, size = 24 }: { code: string; size?: number }) {
+  if (Platform.OS !== 'web' || !code) return null;
+  const w = Math.round(size * 1.333);
+  return (
+    <View
+      style={{ width: w, height: size, borderRadius: 2, overflow: 'hidden' }}
+      // @ts-ignore - className is supported in React Native Web
+      className={`fi fi-${code}`}
+    />
+  );
+}
+
+function FlagTile({ code, name, selected, onPress }: { code: string; name: string; selected: boolean; onPress: () => void }) {
+  return (
+    <TouchableOpacity
+      style={[styles.tile, selected && styles.tileSelected]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={[styles.tileIconWrap, { justifyContent: 'center', alignItems: 'center' }]}>
+        <FlagIcon code={code} size={28} />
+      </View>
+      <Text style={styles.tileLabel} numberOfLines={2}>{name}</Text>
+    </TouchableOpacity>
   );
 }
 
@@ -1207,8 +1242,20 @@ export default function LookupScreen() {
   const [engagementType, setEngagementType] = useState('');
   const [reinforcedReduced, setReinforcedReduced] = useState<ReinforcedReducedValue>('none');
   const [stackCount, setStackCount] = useState(1);
+  const [countryCode, setCountryCode] = useState<string | null>(null);
+  const [continentFilter, setContinentFilter] = useState<string | null>(null);
   const [aliasText, setAliasText] = useState('');
   const [dynamicAliases, setDynamicAliases] = useState<Alias[]>(loadDynamicAliases);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    if (document.querySelector('[data-flag-icons]')) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://cdn.jsdelivr.net/npm/flag-icons@7/css/flag-icons.min.css';
+    link.setAttribute('data-flag-icons', '');
+    document.head.appendChild(link);
+  }, []);
 
   function resetAll() {
     setExercise('real');
@@ -1239,6 +1286,8 @@ export default function LookupScreen() {
     setEngagementType('');
     setReinforcedReduced('none');
     setStackCount(1);
+    setCountryCode(null);
+    setContinentFilter(null);
   }
 
   function handleEntitySelect(v: string) {
@@ -1416,7 +1465,7 @@ export default function LookupScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
         <View>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-            <SymbolPreview sidc={sidc} colorMode={colorMode} fillMode={fillMode} simpleStatusModifier={simpleStatusModifier} engagementBar={engagementBarText} engagementType={engagementType} reinforced={isReinforced} reduced={isReduced} stackCount={stackEnabled ? stackCount : 1} />
+            <SymbolPreview sidc={sidc} colorMode={colorMode} fillMode={fillMode} simpleStatusModifier={simpleStatusModifier} engagementBar={engagementBarText} engagementType={engagementType} reinforced={isReinforced} reduced={isReduced} stackCount={stackEnabled ? stackCount : 1} countryCode={countryCode} />
             <TouchableOpacity onPress={resetAll} style={styles.resetButton} activeOpacity={0.6}>
               <Text style={styles.resetIcon}>Reset ↺</Text>
             </TouchableOpacity>
@@ -2079,6 +2128,69 @@ export default function LookupScreen() {
                 ))}
               </View>
             </View>
+          </View>
+
+          <View style={styles.gridSection}>
+            <View style={[styles.breadcrumbRow, { marginBottom: 12 }]}>
+              <TouchableOpacity onPress={() => { setContinentFilter(null); setCountryCode(null); }} activeOpacity={0.7}>
+                <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, continentFilter === null && styles.breadcrumbItemActive]}>Country</Text>
+              </TouchableOpacity>
+              {continentFilter !== null && (
+                <>
+                  <Text style={styles.breadcrumbSep}>›</Text>
+                  <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, styles.breadcrumbItemActive]}>{continentFilter}</Text>
+                </>
+              )}
+              {countryCode !== null && (
+                <>
+                  <Text style={styles.breadcrumbSep}>›</Text>
+                  <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered]}>
+                    {[...CONTINENTS.flatMap(c => c.countries), ...INTERNATIONAL].find(c => c.code === countryCode)?.name ?? countryCode.toUpperCase()}
+                  </Text>
+                </>
+              )}
+            </View>
+
+            {continentFilter === null ? (
+              <View style={styles.gridRow}>
+                {CONTINENTS.map(cont => (
+                  <DomainTile
+                    key={cont.name}
+                    label={cont.name}
+                    selected={false}
+                    onPress={() => setContinentFilter(cont.name)}
+                  />
+                ))}
+                <FlagTile
+                  code="un"
+                  name="International"
+                  selected={countryCode === 'un'}
+                  onPress={() => { setCountryCode(countryCode === 'un' ? null : 'un'); }}
+                />
+              </View>
+            ) : (
+              <View style={styles.gridRow}>
+                <FlagTile
+                  code=""
+                  name="None"
+                  selected={countryCode === null}
+                  onPress={() => setCountryCode(null)}
+                />
+                {(CONTINENTS.find(c => c.name === continentFilter)?.countries ?? [])
+                  .slice()
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((country: Country) => (
+                    <FlagTile
+                      key={country.code}
+                      code={country.code}
+                      name={country.name}
+                      selected={countryCode === country.code}
+                      onPress={() => setCountryCode(countryCode === country.code ? null : country.code)}
+                    />
+                  ))
+                }
+              </View>
+            )}
           </View>
 
           <View style={{ opacity: stackEnabled ? 1 : 0.35, pointerEvents: stackEnabled ? 'auto' : 'none' }}>

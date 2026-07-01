@@ -491,22 +491,30 @@ function downloadSymbolPNG(sidc: string) {
   triggerDownload(canvas.toDataURL('image/png'), 'symbol.png');
 }
 
-function DownloadButtons({ sidc }: { sidc: string }) {
+function DownloadButtons({ sidc, onReset }: { sidc: string; onReset?: () => void }) {
   const styles = useContext(StylesCtx);
   const { colorScheme } = useThemeContext();
   const dark = colorScheme === 'dark';
-  if (Platform.OS !== 'web') return null;
 
   return (
-    <View style={styles.downloadRow}>
-      <TouchableOpacity style={styles.downloadButton} onPress={() => downloadSymbolPNG(sidc)} activeOpacity={0.7}>
-        <FontAwesome6 name="file-arrow-down" size={14} color={dark ? '#F9FAFB' : '#11181C'} />
-        <Text style={styles.downloadButtonText}>PNG</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.downloadButton} onPress={() => downloadSymbolSVG(sidc)} activeOpacity={0.7}>
-        <FontAwesome6 name="file-arrow-down" size={14} color={dark ? '#F9FAFB' : '#11181C'} />
-        <Text style={styles.downloadButtonText}>SVG</Text>
-      </TouchableOpacity>
+    <View style={[styles.downloadRow, { alignItems: 'center' }]}>
+      {onReset && (
+        <TouchableOpacity onPress={onReset} style={styles.resetButton} activeOpacity={0.6}>
+          <Text style={styles.resetIcon}>Reset ↺</Text>
+        </TouchableOpacity>
+      )}
+      {Platform.OS === 'web' && (
+        <>
+          <TouchableOpacity style={styles.downloadButton} onPress={() => downloadSymbolPNG(sidc)} activeOpacity={0.7}>
+            <FontAwesome6 name="file-arrow-down" size={14} color={dark ? '#F9FAFB' : '#11181C'} />
+            <Text style={styles.downloadButtonText}>PNG</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.downloadButton} onPress={() => downloadSymbolSVG(sidc)} activeOpacity={0.7}>
+            <FontAwesome6 name="file-arrow-down" size={14} color={dark ? '#F9FAFB' : '#11181C'} />
+            <Text style={styles.downloadButtonText}>SVG</Text>
+          </TouchableOpacity>
+        </>
+      )}
     </View>
   );
 }
@@ -1740,13 +1748,8 @@ export default function LookupScreen() {
 
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
         <View>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-            <SymbolPreview sidc={sidc} colorMode={colorMode} fillMode={fillMode} simpleStatusModifier={simpleStatusModifier} engagementBar={engagementBarText} engagementType={engagementType} reinforced={isReinforced} reduced={isReduced} stackCount={stackEnabled ? stackCount : 1} countryCode={countryCode} />
-            <TouchableOpacity onPress={resetAll} style={styles.resetButton} activeOpacity={0.6}>
-              <Text style={styles.resetIcon}>Reset ↺</Text>
-            </TouchableOpacity>
-          </View>
-          <DownloadButtons sidc={sidc} />
+          <SymbolPreview sidc={sidc} colorMode={colorMode} fillMode={fillMode} simpleStatusModifier={simpleStatusModifier} engagementBar={engagementBarText} engagementType={engagementType} reinforced={isReinforced} reduced={isReduced} stackCount={stackEnabled ? stackCount : 1} countryCode={countryCode} />
+          <DownloadButtons sidc={sidc} onReset={resetAll} />
         </View>
 
         <View style={styles.topDivider} />

@@ -238,7 +238,20 @@ function AffiliationTile({
         // into the base SVG so the correct frame shape is preserved.
         const markerSvg = createSymbol(markerSidc, opts).asSVG();
         const match = markerSvg.match(/<text[^>]*>[KJX]<\/text>/);
-        if (match) return baseSvg.replace('</svg>', match[0] + '</svg>');
+        if (match) {
+          // The marker sits outside the base viewBox — compute the union so neither is clipped.
+          const bvb = baseSvg.match(/viewBox="([^"]*)"/);
+          const mvb = markerSvg.match(/viewBox="([^"]*)"/);
+          let result = baseSvg;
+          if (bvb && mvb) {
+            const [bx, by, bw, bh] = bvb[1].split(' ').map(Number);
+            const [mx, my, mw, mh] = mvb[1].split(' ').map(Number);
+            const ux1 = Math.min(bx, mx), uy1 = Math.min(by, my);
+            const ux2 = Math.max(bx + bw, mx + mw), uy2 = Math.max(by + bh, my + mh);
+            result = result.replace(/viewBox="[^"]*"/, `viewBox="${ux1} ${uy1} ${ux2 - ux1} ${uy2 - uy1}"`);
+          }
+          return result.replace('</svg>', match[0] + '</svg>');
+        }
       }
       return baseSvg;
     } catch {

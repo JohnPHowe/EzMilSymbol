@@ -1509,15 +1509,9 @@ export default function LookupScreen() {
                     colorMode={opt.value === 'Custom' ? colorMode : opt.value}
                     fillMode={fillMode}
                     selected={colorModeKey === opt.value}
-                    onPress={() => setColorModeKey(opt.value)}
-                  />
-                ))}
-              </View>
-              {colorModeKey === 'Custom' && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 }}>
-                  <TouchableOpacity
                     onPress={() => {
-                      if (Platform.OS === 'web' && typeof document !== 'undefined') {
+                      setColorModeKey(opt.value);
+                      if (opt.value === 'Custom' && Platform.OS === 'web' && typeof document !== 'undefined') {
                         if (!colorInputRef.current) {
                           const input = document.createElement('input') as HTMLInputElement;
                           input.type = 'color';
@@ -1530,20 +1524,9 @@ export default function LookupScreen() {
                         colorInputRef.current.click();
                       }
                     }}
-                    style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: customColor, borderWidth: 1, borderColor: '#D1D5DB' }}
-                    activeOpacity={0.8}
                   />
-                  <TextInput
-                    value={customColor}
-                    onChangeText={(t) => { if (/^#[0-9A-Fa-f]{0,6}$/.test(t)) setCustomColor(t); }}
-                    style={{ fontFamily: MONO, fontSize: 13, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 6, width: 100, color: '#11181C' }}
-                    maxLength={7}
-                    placeholder="#000000"
-                    autoCapitalize="characters"
-                    autoCorrect={false}
-                  />
-                </View>
-              )}
+                ))}
+              </View>
             </View>
 
             <View style={[styles.topDivider, { marginTop: 20 }]} />

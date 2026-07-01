@@ -1325,7 +1325,24 @@ export default function LookupScreen() {
 
         <View style={styles.topDivider} />
 
-        <AffiliationPicker baseSidc={sidc} affiliation={affiliation} onSelect={setAffiliation} colorMode={colorMode} fillMode={fillMode} />
+        <View style={{ flex: 1, paddingTop: 4 }}>
+          <Text style={[styles.sectionHeading, { marginBottom: 16 }]}>Identity</Text>
+          <AffiliationPicker baseSidc={sidc} affiliation={affiliation} onSelect={setAffiliation} colorMode={colorMode} fillMode={fillMode} />
+          <Text style={[styles.affiliationHeading, { paddingHorizontal: 12, marginTop: 8 }]}>Reality / Exercise / Simulation</Text>
+          <View style={styles.affiliationRow}>
+            {EXERCISE_OPTIONS.map(opt => (
+              <AffiliationTile
+                key={opt.value}
+                label={opt.label}
+                sidc={patchSIDC(sidc, 3, EXERCISE_CONTEXT_BASELINE[opt.value] ?? '0')}
+                selected={exercise === opt.value}
+                onPress={() => handleExerciseSelect(opt.value)}
+                colorMode={colorMode}
+                fillMode={fillMode}
+              />
+            ))}
+          </View>
+        </View>
       </View>
 
       <View style={styles.searchWrapper}>
@@ -1877,23 +1894,6 @@ export default function LookupScreen() {
           </View>
 
           <View style={styles.gridSection}>
-            <Text style={styles.gridCategoryHeading}>Reality / Exercise / Simulation</Text>
-            <View style={styles.gridRow}>
-              {EXERCISE_OPTIONS.map(opt => (
-                <EntityTypeTile
-                  key={opt.value}
-                  label={opt.label}
-                  sidc={patchSIDC(sidc, 3, EXERCISE_CONTEXT_BASELINE[opt.value] ?? '0')}
-                  selected={exercise === opt.value}
-                  onPress={() => handleExerciseSelect(opt.value)}
-                  colorMode={colorMode}
-                  fillMode={fillMode}
-                />
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.gridSection}>
             <Text style={styles.gridCategoryHeading}>Engagement Bar</Text>
             <TextInput
               style={styles.engagementBarInput}
@@ -2073,7 +2073,7 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     marginHorizontal: 16,
   },
-  affiliationWrapper: { flex: 1, paddingTop: 4 },
+  affiliationWrapper: { paddingTop: 4 },
   affiliationHeading: {
     fontSize: 12,
     fontWeight: '700',

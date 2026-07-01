@@ -139,9 +139,29 @@ const GROUP_STARTS: number[][] = (() => {
 function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', simpleStatusModifier = false, engagementBar = '', engagementType = '' }: { sidc: string; colorMode?: ColorModeValue; fillMode?: string; simpleStatusModifier?: boolean; engagementBar?: string; engagementType?: string }) {
   const { svg, naturalW, naturalH } = useMemo(() => {
     try {
-      const symbol = createSymbol(sidc, { size: 100, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, ...(engagementBar && { engagementBar }), ...(engagementType && { engagementType }) });
-      const { width: naturalW, height: naturalH } = symbol.getSize();
-      return { svg: symbol.asSVG(), naturalW, naturalH };
+      const opts = { size: 100, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, ...(engagementBar && { engagementBar }), ...(engagementType && { engagementType }) };
+      const baseSymbol = createSymbol(patchSIDC(sidc, 3, '0'), opts);
+      const { width: naturalW, height: naturalH } = baseSymbol.getSize();
+      let baseSvg = baseSymbol.asSVG();
+      const contextChar = sidc.charAt(2);
+      if (contextChar === '1' || contextChar === '2') {
+        const markerSidc = sidc.slice(4, 6) === '00' ? patchSIDC(sidc, 5, '10') : sidc;
+        const markerSvg = createSymbol(markerSidc, opts).asSVG();
+        const match = markerSvg.match(/<text[^>]*>[KJXS]<\/text>/);
+        if (match) {
+          const bvb = baseSvg.match(/viewBox="([^"]*)"/);
+          const mvb = markerSvg.match(/viewBox="([^"]*)"/);
+          if (bvb && mvb) {
+            const [bx, by, bw, bh] = bvb[1].split(' ').map(Number);
+            const [mx, my, mw, mh] = mvb[1].split(' ').map(Number);
+            const ux1 = Math.min(bx, mx), uy1 = Math.min(by, my);
+            const ux2 = Math.max(bx + bw, mx + mw), uy2 = Math.max(by + bh, my + mh);
+            baseSvg = baseSvg.replace(/viewBox="[^"]*"/, `viewBox="${ux1} ${uy1} ${ux2 - ux1} ${uy2 - uy1}"`);
+          }
+          baseSvg = baseSvg.replace('</svg>', match[0] + '</svg>');
+        }
+      }
+      return { svg: baseSvg, naturalW, naturalH };
     } catch {
       return { svg: null, naturalW: 0, naturalH: 0 };
     }
@@ -238,7 +258,7 @@ function AffiliationTile({
         // Extract exercise context marker (K/J/X) from the marker-sidc render and inject
         // into the base SVG so the correct frame shape is preserved.
         const markerSvg = createSymbol(markerSidc, opts).asSVG();
-        const match = markerSvg.match(/<text[^>]*>[KJX]<\/text>/);
+        const match = markerSvg.match(/<text[^>]*>[KJXS]<\/text>/);
         if (match) {
           // The marker sits outside the base viewBox — compute the union so neither is clipped.
           const bvb = baseSvg.match(/viewBox="([^"]*)"/);
@@ -1263,7 +1283,7 @@ export default function LookupScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
         <View>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-            <SymbolPreview sidc={patchSIDC(sidc, 3, '0')} colorMode={colorMode} fillMode={fillMode} simpleStatusModifier={simpleStatusModifier} engagementBar={engagementBarText} engagementType={engagementType} />
+            <SymbolPreview sidc={sidc} colorMode={colorMode} fillMode={fillMode} simpleStatusModifier={simpleStatusModifier} engagementBar={engagementBarText} engagementType={engagementType} />
             <TouchableOpacity onPress={resetAll} style={styles.resetButton} activeOpacity={0.6}>
               <Text style={styles.resetIcon}>Reset ↺</Text>
             </TouchableOpacity>

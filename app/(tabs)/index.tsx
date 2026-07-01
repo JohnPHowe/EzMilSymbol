@@ -836,7 +836,7 @@ const HQTFFD_OPTIONS: Option[] = [
 ];
 
 const EXERCISE_OPTIONS: Option[] = [
-  { value: 'real', label: 'None' },
+  { value: 'real', label: 'Reality' },
   { value: 'exercise', label: 'Exercise' },
   { value: 'simulation', label: 'Simulation' },
 ];
@@ -1877,7 +1877,7 @@ export default function LookupScreen() {
           </View>
 
           <View style={styles.gridSection}>
-            <Text style={styles.gridCategoryHeading}>Exercise / Simulation</Text>
+            <Text style={styles.gridCategoryHeading}>Reality / Exercise / Simulation</Text>
             <View style={styles.gridRow}>
               {EXERCISE_OPTIONS.map(opt => (
                 <EntityTypeTile

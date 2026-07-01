@@ -485,8 +485,27 @@ function EntityTypeTile({
 }) {
   const svg = useMemo(() => {
     try {
-      const previewSidc = patchSIDC(sidc, 3, '0');
-      return createSymbol(previewSidc, { size: 30, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, ...(engagementBar && { engagementBar }), ...(engagementType && { engagementType }) }).asSVG();
+      const opts = { size: 30, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, ...(engagementBar && { engagementBar }), ...(engagementType && { engagementType }) };
+      let baseSvg = createSymbol(patchSIDC(sidc, 3, '0'), opts).asSVG();
+      const contextChar = sidc.charAt(2);
+      if (contextChar === '1' || contextChar === '2') {
+        const markerSidc = sidc.slice(4, 6) === '00' ? patchSIDC(sidc, 5, '10') : sidc;
+        const markerSvg = createSymbol(markerSidc, opts).asSVG();
+        const match = markerSvg.match(/<text[^>]*>[KJXS]<\/text>/);
+        if (match) {
+          const bvb = baseSvg.match(/viewBox="([^"]*)"/);
+          const mvb = markerSvg.match(/viewBox="([^"]*)"/);
+          if (bvb && mvb) {
+            const [bx, by, bw, bh] = bvb[1].split(' ').map(Number);
+            const [mx, my, mw, mh] = mvb[1].split(' ').map(Number);
+            const ux1 = Math.min(bx, mx), uy1 = Math.min(by, my);
+            const ux2 = Math.max(bx + bw, mx + mw), uy2 = Math.max(by + bh, my + mh);
+            baseSvg = baseSvg.replace(/viewBox="[^"]*"/, `viewBox="${ux1} ${uy1} ${ux2 - ux1} ${uy2 - uy1}"`);
+          }
+          baseSvg = baseSvg.replace('</svg>', match[0] + '</svg>');
+        }
+      }
+      return baseSvg;
     } catch {
       return null;
     }

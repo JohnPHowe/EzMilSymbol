@@ -136,12 +136,11 @@ const GROUP_STARTS: number[][] = (() => {
 
 // ── SymbolPreview ─────────────────────────────────────────────────────────────
 
-function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', simpleStatusModifier = false, engagementBar = '', engagementType = '', reinforced = false, reduced = false }: { sidc: string; colorMode?: ColorModeValue; fillMode?: string; simpleStatusModifier?: boolean; engagementBar?: string; engagementType?: string; reinforced?: boolean; reduced?: boolean }) {
+function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', simpleStatusModifier = false, engagementBar = '', engagementType = '', reinforced = false, reduced = false, stackCount = 1 }: { sidc: string; colorMode?: ColorModeValue; fillMode?: string; simpleStatusModifier?: boolean; engagementBar?: string; engagementType?: string; reinforced?: boolean; reduced?: boolean; stackCount?: number }) {
   const { svg, naturalW, naturalH } = useMemo(() => {
     try {
       const opts = { size: 100, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, ...(engagementBar && { engagementBar }), ...(engagementType && { engagementType }), ...(reinforced && { reinforced: true }), ...(reduced && { reduced: true }) };
       const baseSymbol = createSymbol(patchSIDC(sidc, 3, '0'), opts);
-      const { width: naturalW, height: naturalH } = baseSymbol.getSize();
       let baseSvg = baseSymbol.asSVG();
       const contextChar = sidc.charAt(2);
       if (contextChar === '1' || contextChar === '2') {
@@ -161,11 +160,36 @@ function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', s
           baseSvg = baseSvg.replace('</svg>', match[0] + '</svg>');
         }
       }
+      if (stackCount > 1) {
+        // Frame-only SVG for back copies: strip entity, type, subtype and modifiers
+        let backSvg: string | undefined;
+        try {
+          let frameSidc = patchSIDC(sidc, 3, '0');
+          frameSidc = patchSIDC(frameSidc, 7, '0');
+          frameSidc = patchSIDC(frameSidc, 8, '0');
+          frameSidc = patchSIDC(frameSidc, 9, '0');
+          frameSidc = patchSIDC(frameSidc, 10, '0');
+          frameSidc = patchSIDC(frameSidc, 11, '00');
+          frameSidc = patchSIDC(frameSidc, 13, '00');
+          frameSidc = patchSIDC(frameSidc, 15, '00');
+          frameSidc = patchSIDC(frameSidc, 17, '00');
+          frameSidc = patchSIDC(frameSidc, 19, '00');
+          frameSidc = patchSIDC(frameSidc, 21, '0');
+          frameSidc = patchSIDC(frameSidc, 22, '0');
+          backSvg = createSymbol(frameSidc, { size: 100, colorMode, ...getFillExtras(fillMode, colorMode) }).asSVG();
+        } catch {}
+        baseSvg = applyStack(baseSvg, stackCount, backSvg);
+      }
+      // Derive display dimensions from the final viewBox (may be expanded by stack)
+      const vb = baseSvg.match(/viewBox="([^"]*)"/);
+      const parts = vb ? vb[1].trim().split(/\s+/).map(Number) : [];
+      const naturalW = parts[2] ?? baseSymbol.getSize().width;
+      const naturalH = parts[3] ?? baseSymbol.getSize().height;
       return { svg: baseSvg, naturalW, naturalH };
     } catch {
       return { svg: null, naturalW: 0, naturalH: 0 };
     }
-  }, [sidc, colorMode, fillMode, simpleStatusModifier, engagementBar, engagementType, reinforced, reduced]);
+  }, [sidc, colorMode, fillMode, simpleStatusModifier, engagementBar, engagementType, reinforced, reduced, stackCount]);
 
   const MAX_W = 280, MAX_H = 200;
   const scale = naturalW && naturalH ? Math.min(MAX_W / naturalW, MAX_H / naturalH) : 1;
@@ -473,6 +497,7 @@ function EntityTypeTile({
   engagementType = '',
   reinforced = false,
   reduced = false,
+  stackCount = 1,
 }: {
   label: string;
   sidc: string;
@@ -486,6 +511,7 @@ function EntityTypeTile({
   engagementType?: string;
   reinforced?: boolean;
   reduced?: boolean;
+  stackCount?: number;
 }) {
   const svg = useMemo(() => {
     try {
@@ -509,11 +535,30 @@ function EntityTypeTile({
           baseSvg = baseSvg.replace('</svg>', match[0] + '</svg>');
         }
       }
+      if (stackCount > 1) {
+        let backSvg: string | undefined;
+        try {
+          let frameSidc = patchSIDC(sidc, 3, '0');
+          frameSidc = patchSIDC(frameSidc, 7, '0');
+          frameSidc = patchSIDC(frameSidc, 8, '0');
+          frameSidc = patchSIDC(frameSidc, 9, '0');
+          frameSidc = patchSIDC(frameSidc, 10, '0');
+          frameSidc = patchSIDC(frameSidc, 11, '00');
+          frameSidc = patchSIDC(frameSidc, 13, '00');
+          frameSidc = patchSIDC(frameSidc, 15, '00');
+          frameSidc = patchSIDC(frameSidc, 17, '00');
+          frameSidc = patchSIDC(frameSidc, 19, '00');
+          frameSidc = patchSIDC(frameSidc, 21, '0');
+          frameSidc = patchSIDC(frameSidc, 22, '0');
+          backSvg = createSymbol(frameSidc, { size: 30, colorMode, ...getFillExtras(fillMode, colorMode) }).asSVG();
+        } catch {}
+        baseSvg = applyStack(baseSvg, stackCount, backSvg);
+      }
       return baseSvg;
     } catch {
       return null;
     }
-  }, [sidc, colorMode, fillMode, simpleStatusModifier, engagementBar, engagementType, reinforced, reduced]);
+  }, [sidc, colorMode, fillMode, simpleStatusModifier, engagementBar, engagementType, reinforced, reduced, stackCount]);
 
   return (
     <TouchableOpacity
@@ -825,6 +870,8 @@ const ENGAGEMENT_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: 'EXPIRED',    label: 'Expired' },
 ];
 
+const STACK_OPTIONS = [1, 2, 3, 4, 5, 6] as const;
+
 type ReinforcedReducedValue = 'none' | 'reinforced' | 'reduced' | 'both';
 
 const REINFORCED_REDUCED_OPTIONS: { value: ReinforcedReducedValue; label: string }[] = [
@@ -881,6 +928,50 @@ const FILL_OPTIONS: { value: string; label: string }[] = [
   { value: 'noFillMono',    label: 'No Fill + Mono' },
   { value: 'noFillNoFrame', label: 'No Fill + No Frame' },
 ];
+
+// ── Stack ─────────────────────────────────────────────────────────────────────
+
+// Each additional copy is offset this many SVG-units per layer — large horizontal
+// fan with a small downward drift, matching the stacked-cards visual.
+const STACK_DX = 10;
+const STACK_DY = 8;
+
+// backSvg, when provided, is used for the back copies (frame + fill only, no icon).
+function applyStack(svg: string, count: number, backSvg?: string): string {
+  if (count <= 1) return svg;
+
+  const vbMatch = svg.match(/viewBox="([^"]*)"/);
+  if (!vbMatch) return svg;
+
+  const [vx, vy, vw, vh] = vbMatch[1].trim().split(/\s+/).map(Number);
+  const n = count - 1;
+
+  // Expand viewBox to accommodate copies shifted to the lower-right
+  const newViewBox = `${vx} ${vy} ${vw + n * STACK_DX} ${vh + n * STACK_DY}`;
+
+  const openTagMatch = svg.match(/^<svg[^>]*/);
+  const innerMatch   = svg.match(/<svg[^>]*>([\s\S]*)<\/svg>$/);
+  if (!openTagMatch || !innerMatch) return svg;
+
+  const newOpenTag = `<svg${openTagMatch[0].slice(4).replace(/viewBox="[^"]*"/, `viewBox="${newViewBox}"`)}>`;
+  const inner = innerMatch[1]; // full symbol — used for the front copy
+
+  // Back copies use frame-only SVG if provided
+  let backInner = inner;
+  if (backSvg) {
+    const m = backSvg.match(/<svg[^>]*>([\s\S]*)<\/svg>$/);
+    if (m) backInner = m[1];
+  }
+
+  // Render from back to front so the main symbol sits on top
+  const layers: string[] = [];
+  for (let i = n; i >= 1; i--) {
+    layers.push(`<g transform="translate(${i * STACK_DX} ${i * STACK_DY})">${backInner}</g>`);
+  }
+  layers.push(inner);
+
+  return `${newOpenTag}${layers.join('')}</svg>`;
+}
 
 function getFillExtras(fillMode: string, colorMode: ColorModeValue): Record<string, unknown> {
   const modeColors = (typeof colorMode === 'string' ? COLOR_MODE_FILLS[colorMode] : null) ?? COLOR_MODE_FILLS.Light;
@@ -1115,6 +1206,7 @@ export default function LookupScreen() {
   const [engagementBarText, setEngagementBarText] = useState('');
   const [engagementType, setEngagementType] = useState('');
   const [reinforcedReduced, setReinforcedReduced] = useState<ReinforcedReducedValue>('none');
+  const [stackCount, setStackCount] = useState(1);
   const [aliasText, setAliasText] = useState('');
   const [dynamicAliases, setDynamicAliases] = useState<Alias[]>(loadDynamicAliases);
 
@@ -1146,6 +1238,7 @@ export default function LookupScreen() {
     setEngagementBarText('');
     setEngagementType('');
     setReinforcedReduced('none');
+    setStackCount(1);
   }
 
   function handleEntitySelect(v: string) {
@@ -1227,6 +1320,7 @@ export default function LookupScreen() {
   }
 
   const reinforcedReducedEnabled = symbolSet === '10';
+  const stackEnabled = fillMode === 'filledFramed';
   const isReinforced = reinforcedReducedEnabled && (reinforcedReduced === 'reinforced' || reinforcedReduced === 'both');
   const isReduced    = reinforcedReducedEnabled && (reinforcedReduced === 'reduced'    || reinforcedReduced === 'both');
 
@@ -1322,7 +1416,7 @@ export default function LookupScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
         <View>
           <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-            <SymbolPreview sidc={sidc} colorMode={colorMode} fillMode={fillMode} simpleStatusModifier={simpleStatusModifier} engagementBar={engagementBarText} engagementType={engagementType} reinforced={isReinforced} reduced={isReduced} />
+            <SymbolPreview sidc={sidc} colorMode={colorMode} fillMode={fillMode} simpleStatusModifier={simpleStatusModifier} engagementBar={engagementBarText} engagementType={engagementType} reinforced={isReinforced} reduced={isReduced} stackCount={stackEnabled ? stackCount : 1} />
             <TouchableOpacity onPress={resetAll} style={styles.resetButton} activeOpacity={0.6}>
               <Text style={styles.resetIcon}>Reset ↺</Text>
             </TouchableOpacity>
@@ -1602,7 +1696,7 @@ export default function LookupScreen() {
                     colorMode={colorMode}
                     fillMode={opt.value}
                     selected={fillMode === opt.value}
-                    onPress={() => setFillMode(opt.value)}
+                    onPress={() => { setFillMode(opt.value); if (opt.value !== 'filledFramed') setStackCount(1); }}
                   />
                 ))}
               </View>
@@ -1981,6 +2075,28 @@ export default function LookupScreen() {
                     fillMode={fillMode}
                     reinforced={opt.value === 'reinforced' || opt.value === 'both'}
                     reduced={opt.value === 'reduced' || opt.value === 'both'}
+                  />
+                ))}
+              </View>
+            </View>
+          </View>
+
+          <View style={{ opacity: stackEnabled ? 1 : 0.35, pointerEvents: stackEnabled ? 'auto' : 'none' }}>
+            <View style={styles.gridSection}>
+              <Text style={styles.gridCategoryHeading}>Stack</Text>
+              <View style={styles.gridRow}>
+                {STACK_OPTIONS.map(n => (
+                  <EntityTypeTile
+                    key={n}
+                    label={String(n)}
+                    sidc={sidc}
+                    selected={stackCount === n}
+                    onPress={() => setStackCount(n)}
+                    colorMode={colorMode}
+                    fillMode={fillMode}
+                    reinforced={isReinforced}
+                    reduced={isReduced}
+                    stackCount={n}
                   />
                 ))}
               </View>

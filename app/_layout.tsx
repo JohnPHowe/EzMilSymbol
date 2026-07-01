@@ -22,6 +22,9 @@ export default function RootLayout() {
             UNCLASSIFIED
           </Text>
         </View>
+        <View style={{ backgroundColor: '#000', paddingHorizontal: 16, paddingVertical: 10 }}>
+          <Text style={{ color: 'white', fontSize: 20, fontWeight: '700' }}>EzMilSymbol</Text>
+        </View>
         <View style={{ flex: 1, flexDirection: 'row' }}>
         <Sidebar />
         <View style={{ flex: 1 }}>

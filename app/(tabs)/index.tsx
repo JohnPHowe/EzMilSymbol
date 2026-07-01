@@ -498,11 +498,6 @@ function DownloadButtons({ sidc, onReset }: { sidc: string; onReset?: () => void
 
   return (
     <View style={[styles.downloadRow, { alignItems: 'center' }]}>
-      {onReset && (
-        <TouchableOpacity onPress={onReset} style={styles.resetButton} activeOpacity={0.6}>
-          <Text style={styles.resetIcon}>Reset ↺</Text>
-        </TouchableOpacity>
-      )}
       {Platform.OS === 'web' && (
         <>
           <TouchableOpacity style={styles.downloadButton} onPress={() => downloadSymbolPNG(sidc)} activeOpacity={0.7}>
@@ -514,6 +509,11 @@ function DownloadButtons({ sidc, onReset }: { sidc: string; onReset?: () => void
             <Text style={styles.downloadButtonText}>SVG</Text>
           </TouchableOpacity>
         </>
+      )}
+      {onReset && (
+        <TouchableOpacity onPress={onReset} style={styles.resetButton} activeOpacity={0.6}>
+          <Text style={styles.resetIcon}>Reset ↺</Text>
+        </TouchableOpacity>
       )}
     </View>
   );

@@ -1553,147 +1553,6 @@ export default function LookupScreen() {
         <View style={styles.gridWrapper}>
           <Text style={[styles.sectionHeading, { marginBottom: 16 }]}>Other Modifiers</Text>
 
-          <View style={{ marginTop: 20 }}>
-            <View style={styles.breadcrumbRow}>
-              <TouchableOpacity onPress={() => { setEchelonGroup('0'); setEchelon(null); }} activeOpacity={0.7}>
-                <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, echelonGroup === '0' && styles.breadcrumbItemActive]}>Leadership</Text>
-              </TouchableOpacity>
-              {echelonGroup !== '0' && (
-                <>
-                  <Text style={styles.breadcrumbSep}>›</Text>
-                  <TouchableOpacity onPress={() => setEchelon(null)} activeOpacity={0.7}>
-                    <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, styles.breadcrumbItemActive]}>
-                      {ECHELON_GROUP_OPTIONS.find(o => o.value === echelonGroup)?.label}
-                    </Text>
-                  </TouchableOpacity>
-                </>
-              )}
-              {echelonGroup !== '0' && echelon !== null && (
-                <>
-                  <Text style={styles.breadcrumbSep}>›</Text>
-                  <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered]}>
-                    {ECHELON_OPTIONS[echelonGroup]?.find(o => o.value === echelon)?.label ?? 'Echelon'}
-                  </Text>
-                </>
-              )}
-            </View>
-
-            {echelonGroup === '0' && (
-              <View style={styles.gridSection}>
-                <View style={styles.gridRow}>
-                  {ECHELON_GROUP_OPTIONS.filter(opt => opt.value !== '0').map(opt => (
-                    <DomainTile
-                      key={`leadership-${opt.value}`}
-                      label={opt.label}
-                      icon={opt.value === '1' ? 'x' : opt.value === '7' ? 'chevron-up' : undefined}
-                      svg={opt.value === '2' ? DIVISION_XX_SVG : undefined}
-                      selected={false}
-                      disabled={opt.value === '7' && symbolSet !== '27'}
-                      onPress={() => { setEchelonGroup(opt.value); setEchelon(null); setMobility(null); setMobilityEchelon('0'); }}
-                    />
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {echelonGroup !== '0' && (
-              <View style={styles.gridSection}>
-                <View style={styles.gridRow}>
-                  {(ECHELON_OPTIONS[echelonGroup] ?? []).map(opt => (
-                    <EntityTypeTile
-                      key={opt.value}
-                      label={opt.label}
-                      sidc={patchSIDC(patchSIDC(sidc, 9, echelonGroup), 10, opt.value)}
-                      selected={echelon === opt.value}
-                      onPress={() => setEchelon(opt.value)}
-                      colorMode={colorMode}
-                      fillMode={fillMode}
-                    />
-                  ))}
-                </View>
-              </View>
-            )}
-          </View>
-
-          <View style={{ marginTop: 20, opacity: mobilityEnabled ? 1 : 0.35, pointerEvents: mobilityEnabled ? 'auto' : 'none' }}>
-            <View style={styles.breadcrumbRow}>
-              <TouchableOpacity onPress={() => { setMobility(null); setMobilityEchelon('0'); }} activeOpacity={0.7}>
-                <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, mobility === null && styles.breadcrumbItemActive]}>Mobility</Text>
-              </TouchableOpacity>
-              {mobility !== null && (
-                <>
-                  <Text style={styles.breadcrumbSep}>›</Text>
-                  <TouchableOpacity onPress={() => setMobilityEchelon('0')} activeOpacity={0.7}>
-                    <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, styles.breadcrumbItemActive]}>
-                      {MOBILITY_TYPE_OPTIONS.find(o => o.value === mobility)?.label}
-                    </Text>
-                  </TouchableOpacity>
-                </>
-              )}
-              {mobility !== null && (MOBILITY_SUB_OPTIONS[mobility]?.length ?? 0) > 0 && (
-                <>
-                  <Text style={styles.breadcrumbSep}>›</Text>
-                  <Text style={[styles.breadcrumbItem, mobilityEchelon !== '0' && styles.breadcrumbItemAnswered]}>
-                    {MOBILITY_SUB_OPTIONS[mobility]?.find(o => o.value === mobilityEchelon)?.label ?? 'Type'}
-                  </Text>
-                </>
-              )}
-            </View>
-
-            {mobility === null && (
-              <View style={styles.gridSection}>
-                <View style={styles.gridRow}>
-                  {MOBILITY_TYPE_OPTIONS.map(opt => (
-                    <DomainTile
-                      key={`mobility-${opt.value}`}
-                      label={opt.label}
-                      icon={opt.icon}
-                      selected={false}
-                      disabled={disabledMobilityValues.has(opt.value)}
-                      onPress={() => { setMobility(opt.value); setMobilityEchelon('0'); setEchelonGroup('0'); setEchelon(null); }}
-                    />
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {mobility !== null && (MOBILITY_SUB_OPTIONS[mobility]?.length ?? 0) > 0 && (
-              <View style={styles.gridSection}>
-                <View style={styles.gridRow}>
-                  {(MOBILITY_SUB_OPTIONS[mobility] ?? []).map(opt => (
-                    <EntityTypeTile
-                      key={opt.value}
-                      label={opt.label}
-                      sidc={patchSIDC(patchSIDC(sidc, 9, mobility), 10, opt.value)}
-                      selected={mobilityEchelon === opt.value}
-                      onPress={() => setMobilityEchelon(opt.value)}
-                      colorMode={colorMode}
-                      fillMode={fillMode}
-                    />
-                  ))}
-                </View>
-              </View>
-            )}
-          </View>
-
-          <View style={styles.gridSection}>
-            <Text style={styles.gridCategoryHeading}>Status</Text>
-            <View style={styles.gridRow}>
-              {STATUS_OPTIONS.map((opt, i) => (
-                <EntityTypeTile
-                  key={i}
-                  label={opt.label}
-                  sidc={patchSIDC(sidc, 7, opt.value)}
-                  selected={status === opt.value && simpleStatusModifier === (opt.simpleStatusModifier ?? false)}
-                  onPress={() => { setStatus(opt.value); setSimpleStatusModifier(opt.simpleStatusModifier ?? false); }}
-                  colorMode={colorMode}
-                  fillMode={fillMode}
-                  simpleStatusModifier={opt.simpleStatusModifier ?? false}
-                />
-              ))}
-            </View>
-          </View>
-
           {symbolSet !== null && (
             <View style={styles.gridSection}>
               <View style={[styles.breadcrumbRow, { marginBottom: 12 }]}>
@@ -1855,6 +1714,147 @@ export default function LookupScreen() {
               )}
             </View>
           )}
+
+          <View style={{ marginTop: 20 }}>
+            <View style={styles.breadcrumbRow}>
+              <TouchableOpacity onPress={() => { setEchelonGroup('0'); setEchelon(null); }} activeOpacity={0.7}>
+                <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, echelonGroup === '0' && styles.breadcrumbItemActive]}>Leadership</Text>
+              </TouchableOpacity>
+              {echelonGroup !== '0' && (
+                <>
+                  <Text style={styles.breadcrumbSep}>›</Text>
+                  <TouchableOpacity onPress={() => setEchelon(null)} activeOpacity={0.7}>
+                    <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, styles.breadcrumbItemActive]}>
+                      {ECHELON_GROUP_OPTIONS.find(o => o.value === echelonGroup)?.label}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
+              {echelonGroup !== '0' && echelon !== null && (
+                <>
+                  <Text style={styles.breadcrumbSep}>›</Text>
+                  <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered]}>
+                    {ECHELON_OPTIONS[echelonGroup]?.find(o => o.value === echelon)?.label ?? 'Echelon'}
+                  </Text>
+                </>
+              )}
+            </View>
+
+            {echelonGroup === '0' && (
+              <View style={styles.gridSection}>
+                <View style={styles.gridRow}>
+                  {ECHELON_GROUP_OPTIONS.filter(opt => opt.value !== '0').map(opt => (
+                    <DomainTile
+                      key={`leadership-${opt.value}`}
+                      label={opt.label}
+                      icon={opt.value === '1' ? 'x' : opt.value === '7' ? 'chevron-up' : undefined}
+                      svg={opt.value === '2' ? DIVISION_XX_SVG : undefined}
+                      selected={false}
+                      disabled={opt.value === '7' && symbolSet !== '27'}
+                      onPress={() => { setEchelonGroup(opt.value); setEchelon(null); setMobility(null); setMobilityEchelon('0'); }}
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {echelonGroup !== '0' && (
+              <View style={styles.gridSection}>
+                <View style={styles.gridRow}>
+                  {(ECHELON_OPTIONS[echelonGroup] ?? []).map(opt => (
+                    <EntityTypeTile
+                      key={opt.value}
+                      label={opt.label}
+                      sidc={patchSIDC(patchSIDC(sidc, 9, echelonGroup), 10, opt.value)}
+                      selected={echelon === opt.value}
+                      onPress={() => setEchelon(opt.value)}
+                      colorMode={colorMode}
+                      fillMode={fillMode}
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+
+          <View style={{ marginTop: 20, opacity: mobilityEnabled ? 1 : 0.35, pointerEvents: mobilityEnabled ? 'auto' : 'none' }}>
+            <View style={styles.breadcrumbRow}>
+              <TouchableOpacity onPress={() => { setMobility(null); setMobilityEchelon('0'); }} activeOpacity={0.7}>
+                <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, mobility === null && styles.breadcrumbItemActive]}>Mobility</Text>
+              </TouchableOpacity>
+              {mobility !== null && (
+                <>
+                  <Text style={styles.breadcrumbSep}>›</Text>
+                  <TouchableOpacity onPress={() => setMobilityEchelon('0')} activeOpacity={0.7}>
+                    <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, styles.breadcrumbItemActive]}>
+                      {MOBILITY_TYPE_OPTIONS.find(o => o.value === mobility)?.label}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
+              {mobility !== null && (MOBILITY_SUB_OPTIONS[mobility]?.length ?? 0) > 0 && (
+                <>
+                  <Text style={styles.breadcrumbSep}>›</Text>
+                  <Text style={[styles.breadcrumbItem, mobilityEchelon !== '0' && styles.breadcrumbItemAnswered]}>
+                    {MOBILITY_SUB_OPTIONS[mobility]?.find(o => o.value === mobilityEchelon)?.label ?? 'Type'}
+                  </Text>
+                </>
+              )}
+            </View>
+
+            {mobility === null && (
+              <View style={styles.gridSection}>
+                <View style={styles.gridRow}>
+                  {MOBILITY_TYPE_OPTIONS.map(opt => (
+                    <DomainTile
+                      key={`mobility-${opt.value}`}
+                      label={opt.label}
+                      icon={opt.icon}
+                      selected={false}
+                      disabled={disabledMobilityValues.has(opt.value)}
+                      onPress={() => { setMobility(opt.value); setMobilityEchelon('0'); setEchelonGroup('0'); setEchelon(null); }}
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {mobility !== null && (MOBILITY_SUB_OPTIONS[mobility]?.length ?? 0) > 0 && (
+              <View style={styles.gridSection}>
+                <View style={styles.gridRow}>
+                  {(MOBILITY_SUB_OPTIONS[mobility] ?? []).map(opt => (
+                    <EntityTypeTile
+                      key={opt.value}
+                      label={opt.label}
+                      sidc={patchSIDC(patchSIDC(sidc, 9, mobility), 10, opt.value)}
+                      selected={mobilityEchelon === opt.value}
+                      onPress={() => setMobilityEchelon(opt.value)}
+                      colorMode={colorMode}
+                      fillMode={fillMode}
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.gridSection}>
+            <Text style={styles.gridCategoryHeading}>Status</Text>
+            <View style={styles.gridRow}>
+              {STATUS_OPTIONS.map((opt, i) => (
+                <EntityTypeTile
+                  key={i}
+                  label={opt.label}
+                  sidc={patchSIDC(sidc, 7, opt.value)}
+                  selected={status === opt.value && simpleStatusModifier === (opt.simpleStatusModifier ?? false)}
+                  onPress={() => { setStatus(opt.value); setSimpleStatusModifier(opt.simpleStatusModifier ?? false); }}
+                  colorMode={colorMode}
+                  fillMode={fillMode}
+                  simpleStatusModifier={opt.simpleStatusModifier ?? false}
+                />
+              ))}
+            </View>
+          </View>
 
           <View style={styles.gridSection}>
             <Text style={styles.gridCategoryHeading}>Headquarters / Task Force / Feint / Dummy</Text>

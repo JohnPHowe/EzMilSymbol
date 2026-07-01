@@ -4,7 +4,7 @@ import { COMMON_MODIFIER1_OPTIONS, COMMON_MODIFIER2_OPTIONS, MODIFIER1_OPTIONS, 
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Fuse from 'fuse.js';
 import ms from 'milsymbol';
-import { Fragment, useMemo, useState, type ComponentProps } from 'react';
+import { Fragment, useRef, useMemo, useState, type ComponentProps } from 'react';
 import {
   Platform,
   ScrollView,
@@ -20,6 +20,7 @@ import { SvgXml } from 'react-native-svg';
 // ── Domain / Symbol Set ───────────────────────────────────────────────────────
 
 type Domain = 'Activities' | 'Air' | 'Cyber' | 'Land' | 'Space' | 'Surface' | 'Subsurface';
+type ColorModeValue = string | Record<string, string>;
 type Option = { label: string; value: string };
 
 const DOMAINS: Domain[] = ['Activities', 'Air', 'Cyber', 'Land', 'Space', 'Subsurface', 'Surface'] as const;
@@ -135,7 +136,7 @@ const GROUP_STARTS: number[][] = (() => {
 
 // ── SymbolPreview ─────────────────────────────────────────────────────────────
 
-function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', simpleStatusModifier = false, engagementBar = '', engagementType = '' }: { sidc: string; colorMode?: string; fillMode?: string; simpleStatusModifier?: boolean; engagementBar?: string; engagementType?: string }) {
+function SymbolPreview({ sidc, colorMode = 'Light', fillMode = 'filledFramed', simpleStatusModifier = false, engagementBar = '', engagementType = '' }: { sidc: string; colorMode?: ColorModeValue; fillMode?: string; simpleStatusModifier?: boolean; engagementBar?: string; engagementType?: string }) {
   const { svg, naturalW, naturalH } = useMemo(() => {
     try {
       const symbol = createSymbol(sidc, { size: 100, colorMode, ...getFillExtras(fillMode, colorMode), simpleStatusModifier: simpleStatusModifier || undefined, ...(engagementBar && { engagementBar }), ...(engagementType && { engagementType }) });
@@ -225,7 +226,7 @@ function AffiliationTile({
   sidc: string;
   selected: boolean;
   onPress: () => void;
-  colorMode?: string;
+  colorMode?: ColorModeValue;
   fillMode?: string;
   markerSidc?: string;
 }) {
@@ -283,7 +284,7 @@ function AffiliationPicker({
   baseSidc: string;
   affiliation: string;
   onSelect: (v: string) => void;
-  colorMode?: string;
+  colorMode?: ColorModeValue;
   fillMode?: string;
 }) {
   return (
@@ -455,7 +456,7 @@ function EntityTypeTile({
   sidc: string;
   selected: boolean;
   onPress: () => void;
-  colorMode?: string;
+  colorMode?: ColorModeValue;
   fillMode?: string;
   simpleStatusModifier?: boolean;
   disabled?: boolean;
@@ -510,7 +511,7 @@ function EntityTypeGrid({
   onSelect: (entity: string, type: string) => void;
   onSelectSubtype: (subtype: string) => void;
   onSelectCategory: (entity: string) => void;
-  colorMode?: string;
+  colorMode?: ColorModeValue;
   fillMode?: string;
 }) {
   function tileSidc(entityVal: string, typeVal: string, subtypeVal = '00') {
@@ -818,6 +819,7 @@ const COLOR_MODE_OPTIONS: { value: string; label: string }[] = [
   { value: 'Black',    label: 'Black' },
   { value: 'White',    label: 'White' },
   { value: 'OffWhite', label: 'Off White' },
+  { value: 'Custom',   label: 'Custom' },
 ];
 
 const FILL_OPTIONS: { value: string; label: string }[] = [
@@ -828,8 +830,8 @@ const FILL_OPTIONS: { value: string; label: string }[] = [
   { value: 'noFillNoFrame', label: 'No Fill + No Frame' },
 ];
 
-function getFillExtras(fillMode: string, colorMode: string): Record<string, unknown> {
-  const modeColors = COLOR_MODE_FILLS[colorMode] ?? COLOR_MODE_FILLS.Light;
+function getFillExtras(fillMode: string, colorMode: ColorModeValue): Record<string, unknown> {
+  const modeColors = (typeof colorMode === 'string' ? COLOR_MODE_FILLS[colorMode] : null) ?? COLOR_MODE_FILLS.Light;
   switch (fillMode) {
     case 'noFillColor':   return { fill: false, frameColor: { ...modeColors } };
     case 'filledNoFrame': return { strokeWidth: 0 };
@@ -877,9 +879,13 @@ function createSymbol(sidc: string, options: Record<string, unknown> = {}) {
   // milsymbol renders Suspect/Joker using the Hostile color bucket, so
   // suspects appear red in every mode. Redirect Hostile → the mode's own
   // Suspect color so the fill responds correctly to the selected color mode.
-  const modeName = typeof withBlackFix.colorMode === 'string' ? withBlackFix.colorMode : 'Light';
-  const modeColors = COLOR_MODE_FILLS[modeName] ?? COLOR_MODE_FILLS.Light;
-  const suspectFix = { ...modeColors, Hostile: modeColors.Suspect };
+  const cm = withBlackFix.colorMode;
+  const modeColors = typeof cm === 'string'
+    ? COLOR_MODE_FILLS[cm] ?? COLOR_MODE_FILLS.Light
+    : typeof cm === 'object' && cm !== null
+      ? cm as Record<string, string>
+      : COLOR_MODE_FILLS.Light;
+  const suspectFix = { ...modeColors, Hostile: modeColors.Suspect ?? modeColors.Hostile };
 
   // When a custom frameColor object is provided (e.g. noFillColor / noFillNoFrame),
   // milsymbol's joker mutation runs `baseFrameColor.Friend = baseFrameColor.Hostile`.
@@ -1004,7 +1010,7 @@ const SEARCH_FUSE = new Fuse(SEARCH_INDEX, {
 
 // ── SearchResultRow ───────────────────────────────────────────────────────────
 
-function SearchResultRow({ result, affiliation, onPress, colorMode = 'Light', fillMode = 'filledFramed' }: { result: SearchResult; affiliation: string; onPress: () => void; colorMode?: string; fillMode?: string }) {
+function SearchResultRow({ result, affiliation, onPress, colorMode = 'Light', fillMode = 'filledFramed' }: { result: SearchResult; affiliation: string; onPress: () => void; colorMode?: ColorModeValue; fillMode?: string }) {
   const svg = useMemo(() => {
     try {
       return createSymbol(patchSIDC(result.sidc, 4, affiliation), { size: 20, colorMode, ...getFillExtras(fillMode, colorMode) }).asSVG();
@@ -1046,7 +1052,12 @@ export default function LookupScreen() {
   const [modifier1Category, setModifier1Category] = useState<string | null>(null);
   const [modifier2Category, setModifier2Category] = useState<string | null>(null);
   const [openStep, setOpenStep]   = useState<number | null>(1);
-  const [colorMode, setColorMode] = useState('Light');
+  const [colorModeKey, setColorModeKey] = useState('Light');
+  const [customColor, setCustomColor] = useState('#0066FF');
+  const colorInputRef = useRef<HTMLInputElement | null>(null);
+  const colorMode: ColorModeValue = colorModeKey === 'Custom'
+    ? { Friend: customColor, Hostile: customColor, Neutral: customColor, Unknown: customColor, Civilian: customColor, Suspect: customColor }
+    : colorModeKey;
   const [fillMode,  setFillMode]  = useState('filledFramed');
   const [simpleStatusModifier, setSimpleStatusModifier] = useState(false);
   const [engagementBarText, setEngagementBarText] = useState('');
@@ -1076,7 +1087,7 @@ export default function LookupScreen() {
     setModifier1Category(null);
     setModifier2Category(null);
     setOpenStep(1);
-    setColorMode('Light');
+    setColorModeKey('Light');
     setFillMode('filledFramed');
     setSimpleStatusModifier(false);
     setEngagementBarText('');
@@ -1495,13 +1506,44 @@ export default function LookupScreen() {
                     key={opt.value}
                     label={opt.label}
                     sidc={sidc}
-                    colorMode={opt.value}
+                    colorMode={opt.value === 'Custom' ? colorMode : opt.value}
                     fillMode={fillMode}
-                    selected={colorMode === opt.value}
-                    onPress={() => setColorMode(opt.value)}
+                    selected={colorModeKey === opt.value}
+                    onPress={() => setColorModeKey(opt.value)}
                   />
                 ))}
               </View>
+              {colorModeKey === 'Custom' && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 }}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (Platform.OS === 'web' && typeof document !== 'undefined') {
+                        if (!colorInputRef.current) {
+                          const input = document.createElement('input') as HTMLInputElement;
+                          input.type = 'color';
+                          input.style.cssText = 'position:absolute;opacity:0;width:0;height:0;pointer-events:none';
+                          document.body.appendChild(input);
+                          input.addEventListener('input', (e) => setCustomColor((e.target as HTMLInputElement).value));
+                          colorInputRef.current = input;
+                        }
+                        colorInputRef.current.value = customColor;
+                        colorInputRef.current.click();
+                      }
+                    }}
+                    style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: customColor, borderWidth: 1, borderColor: '#D1D5DB' }}
+                    activeOpacity={0.8}
+                  />
+                  <TextInput
+                    value={customColor}
+                    onChangeText={(t) => { if (/^#[0-9A-Fa-f]{0,6}$/.test(t)) setCustomColor(t); }}
+                    style={{ fontFamily: MONO, fontSize: 13, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 6, width: 100, color: '#11181C' }}
+                    maxLength={7}
+                    placeholder="#000000"
+                    autoCapitalize="characters"
+                    autoCorrect={false}
+                  />
+                </View>
+              )}
             </View>
 
             <View style={[styles.topDivider, { marginTop: 20 }]} />

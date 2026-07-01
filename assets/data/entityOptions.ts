@@ -1072,6 +1072,45 @@ export const ENTITY_OPTIONS: Record<string, EntityDef[]> = {
     { value: '21', label: 'Dive Report Location', types: [] },
   ],
 
+  // ── Signals Intelligence (symbolSets "50"–"54": Air/Land/Space/Subsurface/Surface)
+  // Source: node_modules/milsymbol/src/numbersidc/sidc/signalsintelligence.js
+  // All five sets share the same entity/type structure.
+  '50': [
+    { value: '11', label: 'Signals Intelligence', types: [
+      { value: '01', label: 'Communications', subtypes: [] },
+      { value: '02', label: 'Jammer/Electronic Counter-Measures', subtypes: [] },
+      { value: '03', label: 'Radar', subtypes: [] },
+    ]},
+  ],
+  '51': [
+    { value: '11', label: 'Signals Intelligence', types: [
+      { value: '01', label: 'Communications', subtypes: [] },
+      { value: '02', label: 'Jammer/Electronic Counter-Measures', subtypes: [] },
+      { value: '03', label: 'Radar', subtypes: [] },
+    ]},
+  ],
+  '52': [
+    { value: '11', label: 'Signals Intelligence', types: [
+      { value: '01', label: 'Communications', subtypes: [] },
+      { value: '02', label: 'Jammer/Electronic Counter-Measures', subtypes: [] },
+      { value: '03', label: 'Radar', subtypes: [] },
+    ]},
+  ],
+  '53': [
+    { value: '11', label: 'Signals Intelligence', types: [
+      { value: '01', label: 'Communications', subtypes: [] },
+      { value: '02', label: 'Jammer/Electronic Counter-Measures', subtypes: [] },
+      { value: '03', label: 'Radar', subtypes: [] },
+    ]},
+  ],
+  '54': [
+    { value: '11', label: 'Signals Intelligence', types: [
+      { value: '01', label: 'Communications', subtypes: [] },
+      { value: '02', label: 'Jammer/Electronic Counter-Measures', subtypes: [] },
+      { value: '03', label: 'Radar', subtypes: [] },
+    ]},
+  ],
+
   // ── Activity/Event (symbolSet "40") ─────────────────────────────────────────
   // Source: node_modules/milsymbol/src/numbersidc/sidc/activites.js
   '40': [

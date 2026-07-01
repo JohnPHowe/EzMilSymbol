@@ -28,7 +28,7 @@ export function Sidebar() {
       });
       const svg = symbol.asSVG();
       const { width, height } = symbol.getSize();
-      const displayH = 44;
+      const displayH = 22;
       const displayW = Math.round((width / height) * displayH);
       return { svg, w: displayW, h: displayH };
     } catch {

@@ -171,6 +171,11 @@ function LicenseCard({ entry }: { entry: LicenseEntry }) {
         style={styles.cardHeader}
         onPress={() => setExpanded(v => !v)}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={entry.packages.join(', ')}
+        accessibilityState={{ expanded }}
+        aria-expanded={expanded}
+        accessibilityHint="Shows or hides license text"
       >
         <View style={styles.cardHeaderLeft}>
           {entry.packages.map(pkg => (
@@ -199,7 +204,12 @@ export default function AboutScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>About</Text>
         <Link href="/" dismissTo asChild>
-          <TouchableOpacity style={styles.closeButton} activeOpacity={0.6}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            activeOpacity={0.6}
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+          >
             <Text style={styles.closeText}>✕</Text>
           </TouchableOpacity>
         </Link>
@@ -248,8 +258,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   closeButton: {
-    width: 32,
-    height: 32,
+    // 44x44 is the WCAG 2.5.5 minimum touch target; react-native-web doesn't
+    // implement hitSlop (no DOM/CSS equivalent), so the actual box has to be
+    // this size rather than relying on an invisible expanded hit area.
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },

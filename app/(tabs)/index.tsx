@@ -5,9 +5,10 @@ import { COMMON_MODIFIER1_OPTIONS, COMMON_MODIFIER2_OPTIONS, MODIFIER1_OPTIONS, 
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Fuse from 'fuse.js';
 import ms from 'milsymbol';
-import { Fragment, createContext, useContext, useRef, useMemo, useState, type ComponentProps } from 'react';
+import { Fragment, createContext, useContext, useEffect, useRef, useMemo, useState, type ComponentProps } from 'react';
 import { useThemeContext } from '@/hooks/theme-context';
 import {
+  Animated,
   Image,
   Platform,
   ScrollView,
@@ -30,7 +31,14 @@ function makeStyles(dark: boolean) {
   const bgBlue       = dark ? '#1E3A5F' : '#EFF6FF';
   const text         = dark ? '#F9FAFB' : '#11181C';
   const textMuted    = dark ? '#9CA3AF' : '#687076';
-  const border       = dark ? '#6B7280' : '#D1D5DB';
+  // #9CA3AF only clears WCAG AA (4.5:1) for normal text against white; against the
+  // dark-mode page background (#374151) it falls to ~4.06:1, so text usages (as
+  // opposed to icons/uppercase labels, which only need 3:1) get their own token.
+  const textMutedAA  = dark ? '#B4BCC8' : '#687076';
+  // Lightened from #6B7280 so component borders clear the 3:1 non-text contrast
+  // minimum against the dark-mode page background (~2.1:1 before); bgElevated itself
+  // stays put because raising it further would drop text-on-tile contrast below 4.5:1.
+  const border       = dark ? '#8C94A0' : '#D1D5DB';
   const divider      = dark ? '#4B5563' : '#E5E7EB';
 
   return StyleSheet.create({
@@ -210,11 +218,11 @@ function makeStyles(dark: boolean) {
       paddingVertical: 12,
       backgroundColor: bg,
     },
-    breadcrumbSep: { fontSize: 14, color: '#9CA3AF', marginHorizontal: 6 },
-    breadcrumbItem: { fontSize: 15, color: '#9CA3AF' },
+    breadcrumbSep: { fontSize: 14, color: textMutedAA, marginHorizontal: 6 },
+    breadcrumbItem: { fontSize: 15, color: textMutedAA },
     breadcrumbItemAnswered: { color: text },
     breadcrumbItemActive: { color: '#0a7ea4', fontWeight: '700' },
-    placeholderText: { fontSize: 15, color: '#9CA3AF', fontStyle: 'italic' },
+    placeholderText: { fontSize: 15, color: textMutedAA, fontStyle: 'italic' },
     gridWrapper: {
       marginTop: 32,
       paddingTop: 24,
@@ -231,6 +239,20 @@ function makeStyles(dark: boolean) {
       marginBottom: 12,
     },
     gridRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+    modifierSectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: border,
+      borderRadius: 8,
+      backgroundColor: bgPanel,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+    },
+    modifierSectionHeaderOpen: {
+      borderColor: '#0a7ea4',
+    },
     tile: {
       width: 100,
       alignItems: 'center',
@@ -500,18 +522,18 @@ function DownloadButtons({ sidc, onReset }: { sidc: string; onReset?: () => void
     <View style={[styles.downloadRow, { alignItems: 'center' }]}>
       {Platform.OS === 'web' && (
         <>
-          <TouchableOpacity style={styles.downloadButton} onPress={() => downloadSymbolPNG(sidc)} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.downloadButton} onPress={() => downloadSymbolPNG(sidc)} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Download PNG">
             <FontAwesome6 name="file-arrow-down" size={14} color={dark ? '#F9FAFB' : '#11181C'} />
             <Text style={styles.downloadButtonText}>PNG</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.downloadButton} onPress={() => downloadSymbolSVG(sidc)} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.downloadButton} onPress={() => downloadSymbolSVG(sidc)} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Download SVG">
             <FontAwesome6 name="file-arrow-down" size={14} color={dark ? '#F9FAFB' : '#11181C'} />
             <Text style={styles.downloadButtonText}>SVG</Text>
           </TouchableOpacity>
         </>
       )}
       {onReset && (
-        <TouchableOpacity onPress={onReset} style={styles.resetButton} activeOpacity={0.6}>
+        <TouchableOpacity onPress={onReset} style={styles.resetButton} activeOpacity={0.6} accessibilityRole="button" accessibilityLabel="Reset" accessibilityHint="Clears all selections and starts over">
           <Text style={styles.resetIcon}>Reset ↺</Text>
         </TouchableOpacity>
       )}
@@ -544,6 +566,10 @@ function FlagTile({ code, name, selected, onPress }: { code: string; name: strin
       style={[styles.tile, selected && styles.tileSelected]}
       onPress={onPress}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={name}
+      accessibilityState={{ selected }}
+      aria-selected={selected}
     >
       <View style={[styles.tileIconWrap, { justifyContent: 'center', alignItems: 'center' }]}>
         <FlagIcon code={code} size={28} />
@@ -618,6 +644,10 @@ function AffiliationTile({
       style={[styles.affiliationTile, selected && styles.affiliationTileSelected]}
       onPress={onPress}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+      aria-selected={selected}
     >
       <View style={styles.affiliationIconWrap}>
         {svg && <SvgXml xml={svg} width={84} height={84} />}
@@ -767,6 +797,7 @@ function DomainTile({
   selected,
   onPress,
   disabled = false,
+  accessibilityHint,
 }: {
   label: string;
   icon?: ComponentProps<typeof FontAwesome6>['name'];
@@ -774,6 +805,7 @@ function DomainTile({
   selected: boolean;
   onPress: () => void;
   disabled?: boolean;
+  accessibilityHint?: string;
 }) {
   const styles = useContext(StylesCtx);
   const { colorScheme } = useThemeContext();
@@ -784,6 +816,11 @@ function DomainTile({
       onPress={onPress}
       activeOpacity={0.7}
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected, disabled }}
+      aria-selected={selected}
+      accessibilityHint={accessibilityHint}
     >
       <View style={styles.tileIconWrap}>
         {svg ? (
@@ -811,6 +848,7 @@ function EntityTypeTile({
   reinforced = false,
   reduced = false,
   stackCount = 1,
+  accessibilityHint,
 }: {
   label: string;
   sidc: string;
@@ -825,6 +863,7 @@ function EntityTypeTile({
   reinforced?: boolean;
   reduced?: boolean;
   stackCount?: number;
+  accessibilityHint?: string;
 }) {
   const styles = useContext(StylesCtx);
   const svg = useMemo(() => {
@@ -880,6 +919,11 @@ function EntityTypeTile({
       onPress={onPress}
       activeOpacity={disabled ? 1 : 0.7}
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected, disabled }}
+      aria-selected={selected}
+      accessibilityHint={accessibilityHint}
     >
       <View style={styles.tileIconWrap}>
         {svg && <SvgXml xml={svg} width={40} height={40} />}
@@ -1079,7 +1123,13 @@ function Breadcrumbs({
         {steps.map((s, i) => (
           <Fragment key={s.step}>
             {i > 0 && <Text style={styles.breadcrumbSep}>›</Text>}
-            <TouchableOpacity onPress={() => onToggle(s.step)} activeOpacity={0.7}>
+            <TouchableOpacity
+              onPress={() => onToggle(s.step)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={s.display ?? s.placeholder}
+              accessibilityHint="Expands or collapses this step"
+            >
               <Text style={[
                 styles.breadcrumbItem,
                 s.value && styles.breadcrumbItemAnswered,
@@ -1091,6 +1141,70 @@ function Breadcrumbs({
           </Fragment>
         ))}
       </View>
+    </View>
+  );
+}
+
+// ── ModifierSection ──────────────────────────────────────────────────────────
+
+// A collapsible sub-section within "Other Modifiers". Collapsing is purely a
+// render toggle — it never touches the underlying selection state, so closing
+// a section doesn't lose whatever was already picked inside it. `disabled`
+// sections (irrelevant for the current symbol set) render dimmed, force-closed,
+// and non-interactive, same as the opacity/pointerEvents idiom used elsewhere
+// in this file, just now also collapsed instead of merely inert.
+function ModifierSection({
+  title,
+  open,
+  onToggle,
+  disabled = false,
+  children,
+}: {
+  title: string;
+  open: boolean;
+  onToggle: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) {
+  const styles = useContext(StylesCtx);
+  const { colorScheme } = useThemeContext();
+  const dark = colorScheme === 'dark';
+  const isOpen = open && !disabled;
+  // 0 = collapsed ("›"), 1 = expanded (rotated 90° to point down). Animating
+  // between these two values (rather than incrementing indefinitely) is what
+  // makes a re-collapse rotate back -90° to the original position instead of
+  // continuing forward to 180°.
+  const rotateAnim = useRef(new Animated.Value(isOpen ? 1 : 0)).current;
+  useEffect(() => {
+    Animated.timing(rotateAnim, {
+      toValue: isOpen ? 1 : 0,
+      duration: 150,
+      useNativeDriver: true,
+    }).start();
+  }, [isOpen, rotateAnim]);
+  const rotate = rotateAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '90deg'] });
+
+  return (
+    <View style={styles.gridSection}>
+      <TouchableOpacity
+        onPress={disabled ? undefined : onToggle}
+        disabled={disabled}
+        activeOpacity={disabled ? 1 : 0.7}
+        style={[styles.modifierSectionHeader, isOpen && styles.modifierSectionHeaderOpen, disabled && styles.tileDisabled]}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        accessibilityState={{ expanded: isOpen, disabled }}
+        aria-expanded={isOpen}
+        accessibilityHint="Shows or hides this section"
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Animated.View style={{ transform: [{ rotate }], marginRight: 8 }}>
+            <FontAwesome6 name="chevron-right" size={14} color={isOpen ? '#0a7ea4' : (dark ? '#9CA3AF' : '#687076')} />
+          </Animated.View>
+          <Text style={[styles.gridCategoryHeading, { marginBottom: 0 }]}>{title}</Text>
+        </View>
+      </TouchableOpacity>
+      {isOpen && <View style={{ marginTop: 12 }}>{children}</View>}
     </View>
   );
 }
@@ -1488,7 +1602,14 @@ function SearchResultRow({ result, affiliation, onPress, colorMode = 'Light', fi
   }, [result.sidc, affiliation, colorMode, fillMode]);
 
   return (
-    <TouchableOpacity style={styles.searchResultRow} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.searchResultRow}
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={result.pathLabel}
+      accessibilityHint="Selects this symbol"
+    >
       <View style={styles.searchResultIconWrap}>
         {svg && <SvgXml xml={svg} width={28} height={28} />}
       </View>
@@ -1523,6 +1644,14 @@ export default function LookupScreen() {
   const [modifier1Category, setModifier1Category] = useState<string | null>(null);
   const [modifier2Category, setModifier2Category] = useState<string | null>(null);
   const [openStep, setOpenStep]   = useState<number | null>(1);
+  const [openModifierSections, setOpenModifierSections] = useState<Set<string>>(new Set());
+  function toggleModifierSection(id: string) {
+    setOpenModifierSections(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
   const [colorModeKey, setColorModeKey] = useState('Light');
   const [customColor, setCustomColor] = useState('#0066FF');
   const colorInputRef = useRef<HTMLInputElement | null>(null);
@@ -1539,6 +1668,34 @@ export default function LookupScreen() {
   const [continentFilter, setContinentFilter] = useState<string | null>(null);
   const [aliasText, setAliasText] = useState('');
   const [dynamicAliases, setDynamicAliases] = useState<Alias[]>(loadDynamicAliases);
+
+  // Selecting a tile (domain, entity, modifier category, ...) unmounts that tile's
+  // grid and reveals the next one. Since the focused element disappears, the browser
+  // drops keyboard focus to <body>, forcing a keyboard user to Tab from the top of the
+  // page to continue. Whenever a selection reshapes the builder, if focus was lost this
+  // way, land it on the first focusable control in the newly-revealed content instead.
+  const builderScrollRef = useRef<ScrollView>(null);
+  const didMountRef = useRef(false);
+  useEffect(() => {
+    if (!didMountRef.current) { didMountRef.current = true; return; }
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    if (document.activeElement !== document.body) return;
+    const node = builderScrollRef.current?.getScrollableNode?.() as HTMLElement | undefined;
+    if (!node) return;
+    // Prefer the first focusable control still visible in the viewport (i.e. near
+    // where the user's scroll position already is) over the first one in the whole
+    // builder, so focus doesn't appear to jump back up to "Domain" for a selection
+    // made far down the page.
+    const candidates = Array.from(node.querySelectorAll<HTMLElement>('button, input, [tabindex]'));
+    const target = candidates.find(el => el.getBoundingClientRect().top >= 0) ?? candidates[0];
+    target?.focus();
+  }, [
+    domain, symbolSet, entity, entityType, entitySubtype,
+    modifier1Category, modifier2Category,
+    echelonGroup, echelon, mobility, mobilityEchelon,
+    hqtffd, status, engagementType, reinforcedReduced,
+    continentFilter, countryCode, colorModeKey, fillMode, stackCount, openStep,
+  ]);
 
   function resetAll() {
     setExercise('real');
@@ -1734,12 +1891,16 @@ export default function LookupScreen() {
             autoCapitalize="words"
             returnKeyType="done"
             onSubmitEditing={handleAddAlias}
+            accessibilityLabel="Alias name"
           />
           <TouchableOpacity
             style={[styles.aliasButton, (!entity || !aliasText.trim()) && styles.aliasButtonDisabled]}
             onPress={handleAddAlias}
             disabled={!entity || !aliasText.trim()}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Add alias"
+            accessibilityState={{ disabled: !entity || !aliasText.trim() }}
           >
             <Text style={styles.aliasButtonText}>Add</Text>
           </TouchableOpacity>
@@ -1802,6 +1963,7 @@ export default function LookupScreen() {
           clearButtonMode="while-editing"
           autoCorrect={false}
           autoCapitalize="none"
+          accessibilityLabel="Search military symbols"
           returnKeyType="search"
         />
 
@@ -1829,7 +1991,7 @@ export default function LookupScreen() {
         )}
       </View>
 
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={builderScrollRef} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <View>
           <Text style={[styles.sectionHeading, { marginBottom: 16 }]}>Symbol Builder</Text>
           <Breadcrumbs
@@ -1979,9 +2141,15 @@ export default function LookupScreen() {
         <View style={styles.gridWrapper}>
           <Text style={[styles.sectionHeading, { marginBottom: 16 }]}>Color Options</Text>
 
+          {entity === null ? (
+            <Text style={styles.placeholderText}>Select a symbol above to configure colors</Text>
+          ) : (
           <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-            <View style={styles.gridSection}>
-              <Text style={styles.gridCategoryHeading}>Color Mode</Text>
+            <ModifierSection
+              title="Color Mode"
+              open={openModifierSections.has('colorMode')}
+              onToggle={() => toggleModifierSection('colorMode')}
+            >
               <View style={styles.gridRow}>
                 {COLOR_MODE_OPTIONS.map(opt => (
                   <EntityTypeTile
@@ -1991,6 +2159,7 @@ export default function LookupScreen() {
                     colorMode={opt.value === 'Custom' ? colorMode : opt.value}
                     fillMode={fillMode}
                     selected={colorModeKey === opt.value}
+                    accessibilityHint={opt.value === 'Custom' ? 'Opens system color picker' : undefined}
                     onPress={() => {
                       setColorModeKey(opt.value);
                       if (opt.value === 'Custom' && Platform.OS === 'web' && typeof document !== 'undefined') {
@@ -2009,12 +2178,15 @@ export default function LookupScreen() {
                   />
                 ))}
               </View>
-            </View>
+            </ModifierSection>
 
             <View style={[styles.topDivider, { marginTop: 20 }]} />
 
-            <View style={styles.gridSection}>
-              <Text style={styles.gridCategoryHeading}>Fill & Frame Options</Text>
+            <ModifierSection
+              title="Fill & Frame Options"
+              open={openModifierSections.has('fillFrame')}
+              onToggle={() => toggleModifierSection('fillFrame')}
+            >
               <View style={styles.gridRow}>
                 {FILL_OPTIONS.map(opt => (
                   <EntityTypeTile
@@ -2028,17 +2200,26 @@ export default function LookupScreen() {
                   />
                 ))}
               </View>
-            </View>
+            </ModifierSection>
           </View>
+          )}
         </View>
 
         <View style={styles.gridWrapper}>
           <Text style={[styles.sectionHeading, { marginBottom: 16 }]}>Other Modifiers</Text>
 
+          {entity === null ? (
+            <Text style={styles.placeholderText}>Select a symbol above to configure modifiers</Text>
+          ) : (
+          <>
           {symbolSet !== null && (
-            <View style={styles.gridSection}>
+            <ModifierSection
+              title="Sector 1 Modifiers"
+              open={openModifierSections.has('sector1')}
+              onToggle={() => toggleModifierSection('sector1')}
+            >
               <View style={[styles.breadcrumbRow, { marginBottom: 12 }]}>
-                <TouchableOpacity onPress={() => setModifier1Category(null)} activeOpacity={0.7}>
+                <TouchableOpacity onPress={() => setModifier1Category(null)} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Reset Sector 1 Modifiers" accessibilityHint="Resets this selection">
                   <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, modifier1Category === null && styles.breadcrumbItemActive]}>Sector 1 Modifiers</Text>
                 </TouchableOpacity>
                 {modifier1Category !== null && (
@@ -2113,13 +2294,17 @@ export default function LookupScreen() {
                     ))}
                 </View>
               )}
-            </View>
+            </ModifierSection>
           )}
 
           {symbolSet !== null && (
-            <View style={styles.gridSection}>
+            <ModifierSection
+              title="Sector 2 Modifiers"
+              open={openModifierSections.has('sector2')}
+              onToggle={() => toggleModifierSection('sector2')}
+            >
               <View style={[styles.breadcrumbRow, { marginBottom: 12 }]}>
-                <TouchableOpacity onPress={() => setModifier2Category(null)} activeOpacity={0.7}>
+                <TouchableOpacity onPress={() => setModifier2Category(null)} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Reset Sector 2 Modifiers" accessibilityHint="Resets this selection">
                   <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, modifier2Category === null && styles.breadcrumbItemActive]}>Sector 2 Modifiers</Text>
                 </TouchableOpacity>
                 {modifier2Category !== null && (
@@ -2194,18 +2379,22 @@ export default function LookupScreen() {
                     ))}
                 </View>
               )}
-            </View>
+            </ModifierSection>
           )}
 
-          <View style={{ marginTop: 20 }}>
+          <ModifierSection
+            title="Echelon"
+            open={openModifierSections.has('echelon')}
+            onToggle={() => toggleModifierSection('echelon')}
+          >
             <View style={styles.breadcrumbRow}>
-              <TouchableOpacity onPress={() => { setEchelonGroup('0'); setEchelon(null); }} activeOpacity={0.7}>
+              <TouchableOpacity onPress={() => { setEchelonGroup('0'); setEchelon(null); }} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Reset Echelon" accessibilityHint="Resets this selection">
                 <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, echelonGroup === '0' && styles.breadcrumbItemActive]}>Echelon</Text>
               </TouchableOpacity>
               {echelonGroup !== '0' && (
                 <>
                   <Text style={styles.breadcrumbSep}>›</Text>
-                  <TouchableOpacity onPress={() => setEchelon(null)} activeOpacity={0.7}>
+                  <TouchableOpacity onPress={() => setEchelon(null)} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel={ECHELON_GROUP_OPTIONS.find(o => o.value === echelonGroup)?.label} accessibilityHint="Resets to echelon group">
                     <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, styles.breadcrumbItemActive]}>
                       {ECHELON_GROUP_OPTIONS.find(o => o.value === echelonGroup)?.label}
                     </Text>
@@ -2257,17 +2446,22 @@ export default function LookupScreen() {
                 </View>
               </View>
             )}
-          </View>
+          </ModifierSection>
 
-          <View style={{ marginTop: 20, opacity: mobilityEnabled ? 1 : 0.35, pointerEvents: mobilityEnabled ? 'auto' : 'none' }}>
+          <ModifierSection
+            title="Mobility"
+            open={openModifierSections.has('mobility')}
+            onToggle={() => toggleModifierSection('mobility')}
+            disabled={!mobilityEnabled}
+          >
             <View style={styles.breadcrumbRow}>
-              <TouchableOpacity onPress={() => { setMobility(null); setMobilityEchelon('0'); }} activeOpacity={0.7}>
+              <TouchableOpacity onPress={() => { setMobility(null); setMobilityEchelon('0'); }} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Reset Mobility" accessibilityHint="Resets this selection">
                 <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, mobility === null && styles.breadcrumbItemActive]}>Mobility</Text>
               </TouchableOpacity>
               {mobility !== null && (
                 <>
                   <Text style={styles.breadcrumbSep}>›</Text>
-                  <TouchableOpacity onPress={() => setMobilityEchelon('0')} activeOpacity={0.7}>
+                  <TouchableOpacity onPress={() => setMobilityEchelon('0')} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel={MOBILITY_TYPE_OPTIONS.find(o => o.value === mobility)?.label} accessibilityHint="Resets to mobility type">
                     <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, styles.breadcrumbItemActive]}>
                       {MOBILITY_TYPE_OPTIONS.find(o => o.value === mobility)?.label}
                     </Text>
@@ -2318,10 +2512,13 @@ export default function LookupScreen() {
                 </View>
               </View>
             )}
-          </View>
+          </ModifierSection>
 
-          <View style={styles.gridSection}>
-            <Text style={styles.gridCategoryHeading}>Headquarters / Task Force / Feint / Dummy</Text>
+          <ModifierSection
+            title="Headquarters / Task Force / Feint / Dummy"
+            open={openModifierSections.has('hqtf')}
+            onToggle={() => toggleModifierSection('hqtf')}
+          >
             <View style={styles.gridRow}>
               {[
                 HQTFFD_OPTIONS[0],
@@ -2338,10 +2535,13 @@ export default function LookupScreen() {
                 />
               ))}
             </View>
-          </View>
+          </ModifierSection>
 
-          <View style={styles.gridSection}>
-            <Text style={styles.gridCategoryHeading}>Status</Text>
+          <ModifierSection
+            title="Status"
+            open={openModifierSections.has('status')}
+            onToggle={() => toggleModifierSection('status')}
+          >
             <View style={styles.gridRow}>
               {STATUS_OPTIONS.map((opt, i) => (
                 <EntityTypeTile
@@ -2356,10 +2556,13 @@ export default function LookupScreen() {
                 />
               ))}
             </View>
-          </View>
+          </ModifierSection>
 
-          <View style={styles.gridSection}>
-            <Text style={styles.gridCategoryHeading}>Engagement Bar</Text>
+          <ModifierSection
+            title="Engagement Bar"
+            open={openModifierSections.has('engagement')}
+            onToggle={() => toggleModifierSection('engagement')}
+          >
             <TextInput
               style={styles.engagementBarInput}
               placeholder="Enter bar text…"
@@ -2369,6 +2572,7 @@ export default function LookupScreen() {
                 if (!text) setEngagementType('');
               }}
               autoCapitalize="characters"
+              accessibilityLabel="Engagement bar text"
             />
             <View style={[styles.gridRow, { marginTop: 12 }]}>
               {ENGAGEMENT_TYPE_OPTIONS.map(opt => (
@@ -2386,11 +2590,14 @@ export default function LookupScreen() {
                 />
               ))}
             </View>
-          </View>
+          </ModifierSection>
 
-          <View style={{ opacity: reinforcedReducedEnabled ? 1 : 0.35, pointerEvents: reinforcedReducedEnabled ? 'auto' : 'none' }}>
-            <View style={styles.gridSection}>
-              <Text style={styles.gridCategoryHeading}>Reinforced or Reduced</Text>
+          <ModifierSection
+            title="Reinforced or Reduced"
+            open={openModifierSections.has('reinforced')}
+            onToggle={() => toggleModifierSection('reinforced')}
+            disabled={!reinforcedReducedEnabled}
+          >
               <View style={styles.gridRow}>
                 {REINFORCED_REDUCED_OPTIONS.map(opt => (
                   <EntityTypeTile
@@ -2406,12 +2613,15 @@ export default function LookupScreen() {
                   />
                 ))}
               </View>
-            </View>
-          </View>
+          </ModifierSection>
 
-          <View style={styles.gridSection}>
+          <ModifierSection
+            title="Country"
+            open={openModifierSections.has('country')}
+            onToggle={() => toggleModifierSection('country')}
+          >
             <View style={[styles.breadcrumbRow, { marginBottom: 12 }]}>
-              <TouchableOpacity onPress={() => { setContinentFilter(null); setCountryCode(null); }} activeOpacity={0.7}>
+              <TouchableOpacity onPress={() => { setContinentFilter(null); setCountryCode(null); }} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Reset Country" accessibilityHint="Resets country and continent">
                 <Text style={[styles.breadcrumbItem, styles.breadcrumbItemAnswered, continentFilter === null && styles.breadcrumbItemActive]}>Country</Text>
               </TouchableOpacity>
               {continentFilter !== null && (
@@ -2471,11 +2681,14 @@ export default function LookupScreen() {
                 }
               </View>
             )}
-          </View>
+          </ModifierSection>
 
-          <View style={{ opacity: stackEnabled ? 1 : 0.35, pointerEvents: stackEnabled ? 'auto' : 'none' }}>
-            <View style={styles.gridSection}>
-              <Text style={styles.gridCategoryHeading}>Stack</Text>
+          <ModifierSection
+            title="Stack"
+            open={openModifierSections.has('stack')}
+            onToggle={() => toggleModifierSection('stack')}
+            disabled={!stackEnabled}
+          >
               <View style={styles.gridRow}>
                 {STACK_OPTIONS.map(n => (
                   <EntityTypeTile
@@ -2492,8 +2705,9 @@ export default function LookupScreen() {
                   />
                 ))}
               </View>
-            </View>
-          </View>
+          </ModifierSection>
+          </>
+          )}
 
         </View>
 

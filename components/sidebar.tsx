@@ -58,6 +58,10 @@ export function Sidebar() {
           alignItems: 'center',
           justifyContent: 'center',
         }}
+        accessibilityRole="button"
+        accessibilityLabel="Home"
+        accessibilityState={{ selected: isHome }}
+        aria-selected={isHome}
       >
         {infantrySvg && <SvgXml xml={infantrySvg} width={infantryW} height={infantryH} />}
       </TouchableOpacity>
@@ -72,6 +76,8 @@ export function Sidebar() {
           alignItems: 'center',
           justifyContent: 'center',
         }}
+        accessibilityRole="button"
+        accessibilityLabel="About"
       >
         <FontAwesome6 name="circle-info" size={22} color="white" />
       </TouchableOpacity>

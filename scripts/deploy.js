@@ -20,6 +20,13 @@ function copyRecursive(from, to) {
   }
 }
 
+// _expo/static/js/web/ uses a content hash per build, so a stale bundle from
+// the previous deploy never gets overwritten by the copy below — it just sits
+// there accumulating forever. Clear it first so only the current build's
+// files are ever present (and tracked in git) at the destination.
+const expoDir = path.join(root, '_expo');
+fs.rmSync(expoDir, { recursive: true, force: true });
+
 copyRecursive(src, root);
 
 // Ensure .nojekyll exists so GitHub Pages serves _expo/ and _sitemap.html
